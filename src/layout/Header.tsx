@@ -2,10 +2,11 @@ import React from "react";
 import { Link } from "react-router-dom";
 import Icon from "../components/Icons";
 import { useSelector } from "react-redux";
+import type { RootState } from "../store/store";
 import Search from "../pages/partials/Search";
 
-const Header = (props) => {
-  const isAuth = useSelector((state) => state.auth.isAuth);
+const Header: React.FC = () => {
+  const isAuth = useSelector((state: RootState) => state.auth.isAuth);
   const topNavLinks = [
     { name: "About", link: "/about" },
     { name: "Company", link: "/company" },
@@ -55,7 +56,7 @@ const Header = (props) => {
                 Login
               </button>
             </Link>
-            <Link to="signup" className="router-link">
+            <Link to="/signup" className="router-link">
               <button type="button" className="user-auth__button">
                 Signup
               </button>
@@ -68,5 +69,3 @@ const Header = (props) => {
 };
 
 export default Header;
-
-// 7500406148

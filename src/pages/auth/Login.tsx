@@ -1,29 +1,29 @@
-import React, { useState } from "react";
+import React, { useState, ChangeEvent, FormEvent } from "react";
 import { Link, Navigate } from "react-router-dom";
 import Icon from "../../components/Icons";
-import { useDispatch, useSelector } from "react-redux";
+import { useSelector } from "react-redux";
+import { useAppDispatch } from "../../store/hooks";
+import type { RootState } from "../../store/store";
 import { login } from "../../store/auth/actions";
 
-const Login = (props) => {
-  const isAuth = useSelector((state) => state.auth.isAuth);
-  const dispatch = useDispatch();
-  const [credentials, setCredetials] = useState({ email: "", password: "" });
+const Login: React.FC = () => {
+  const isAuth = useSelector((state: RootState) => state.auth.isAuth);
+  const dispatch = useAppDispatch();
+  const [credentials, setCredentials] = useState({ email: "", password: "" });
 
-  const handleChange = (e) => {
+  const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setCredetials({ ...credentials, [name]: value });
+    setCredentials({ ...credentials, [name]: value });
   };
 
   const handleClearField = () => {
-    for (let each in credentials) {
-      setCredetials({ ...credentials, [each]: "" });
-    }
+    setCredentials({ email: "", password: "" });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
     dispatch(login(credentials));
-    handleClearField()
+    handleClearField();
   };
 
   if (!isAuth) {
@@ -43,6 +43,7 @@ const Login = (props) => {
             className="login-form__input"
             value={credentials.email}
             onChange={handleChange}
+            required
           />
           <input
             type="password"
@@ -51,8 +52,11 @@ const Login = (props) => {
             className="login-form__input"
             value={credentials.password}
             onChange={handleChange}
+            required
           />
-          <button className="login-form__button">Login</button>
+          <button className="login-form__button" type="submit">
+            Login
+          </button>
         </form>
       </div>
     );

@@ -8,18 +8,21 @@ import Home from "./pages/Home";
 import Footer from "./pages/Footer";
 import "./sass/main.scss";
 
-function App() {
+const App: React.FC = () => {
   // app name
   useEffect(() => {
     axios
       .get(`${import.meta.env.VITE_APP_PROXY}/api/app/title`)
       .then((response) => {
-        document.title = response.data.title;
+        if (response.data?.title) {
+          document.title = response.data.title;
+        }
       })
       .catch((err) => {
         console.log(err);
       });
   }, []);
+
   return (
     <Provider store={store}>
       <BrowserRouter>
@@ -29,6 +32,6 @@ function App() {
       </BrowserRouter>
     </Provider>
   );
-}
+};
 
 export default App;

@@ -1,4 +1,20 @@
-const Icon = ({ iconName, styleName }) => {
+import React from "react";
+
+export type IconName =
+  | "magnifying-glass"
+  | "pencil"
+  | "menu"
+  | "thumbs-up"
+  | "thumbs-down"
+  | "cross"
+  | "stats";
+
+interface IconProps {
+  iconName: IconName | string;
+  styleName?: string;
+}
+
+const Icon: React.FC<IconProps> = ({ iconName, styleName }) => {
   switch (iconName) {
     case "magnifying-glass":
       return (
@@ -102,4 +118,5 @@ const Icon = ({ iconName, styleName }) => {
       return <></>;
   }
 };
+
 export default Icon;
