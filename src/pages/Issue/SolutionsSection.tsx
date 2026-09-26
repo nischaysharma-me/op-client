@@ -195,31 +195,43 @@ const SolutionsSection: React.FC<SolutionsSectionProps> = ({
                 <p className="solution-card__text">{op.content}</p>
 
                 {op.codeBlock && (
-                  <div className="solution-card__code-container">
-                    <div className="solution-card__code-header">
-                      <span>Proposed Fix (Solution Snippet)</span>
-                      <button
-                        type="button"
-                        className="btn btn--ghost btn--sm"
-                        onClick={() => handleCopyCode(op._id, op.codeBlock!)}
-                      >
-                        {copiedId === op._id ? (
-                          <>
-                            <Check size={14} />
-                            <span>Copied</span>
-                          </>
-                        ) : (
-                          <>
-                            <Copy size={14} />
-                            <span>Copy Code</span>
-                          </>
-                        )}
-                      </button>
-                    </div>
-                    <pre className="trouble-card__code-preview">
-                      <code>{op.codeBlock}</code>
-                    </pre>
-                  </div>
+                  (() => {
+                    const isCodeSnippet =
+                      op.codeBlock.includes("function") ||
+                      op.codeBlock.includes("const ") ||
+                      op.codeBlock.includes("let ") ||
+                      op.codeBlock.includes("import ") ||
+                      op.codeBlock.includes("=>") ||
+                      op.codeBlock.includes("{") ||
+                      op.codeBlock.includes(";");
+                    return (
+                      <div className="solution-card__code-container">
+                        <div className="solution-card__code-header">
+                          <span>{isCodeSnippet ? "Proposed Solution (Code Snippet)" : "Action Plan & Key Takeaways"}</span>
+                          <button
+                            type="button"
+                            className="btn btn--ghost btn--sm"
+                            onClick={() => handleCopyCode(op._id, op.codeBlock!)}
+                          >
+                            {copiedId === op._id ? (
+                              <>
+                                <Check size={14} />
+                                <span>Copied</span>
+                              </>
+                            ) : (
+                              <>
+                                <Copy size={14} />
+                                <span>{isCodeSnippet ? "Copy Code" : "Copy Plan"}</span>
+                              </>
+                            )}
+                          </button>
+                        </div>
+                        <pre className="trouble-card__code-preview">
+                          <code>{op.codeBlock}</code>
+                        </pre>
+                      </div>
+                    );
+                  })()
                 )}
               </div>
 
