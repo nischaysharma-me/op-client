@@ -1,0 +1,177 @@
+@use '../abstracts' as *;
+@use './button' as *;
+
+.ui-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(9, 13, 22, 0.85);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  z-index: 100;
+  animation: modal-fade-in 0.2s ease-out;
+}
+
+.ui-modal {
+  background-color: var(--color-bg-card);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-lg);
+  width: 100%;
+  max-width: 680px;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.7);
+  overflow: hidden;
+  animation: modal-slide-up 0.2s ease-out;
+
+  &__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 2rem 2.4rem;
+    border-bottom: 1px solid var(--color-border-subtle);
+  }
+
+  &__title {
+    font-size: 1.8rem;
+    font-weight: 600;
+    color: var(--color-text-primary);
+  }
+
+  &__close {
+    width: 3.2rem;
+    height: 3.2rem;
+    border-radius: var(--radius-sm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--color-text-muted);
+    background-color: transparent;
+    transition: all var(--transition-fast);
+
+    &:hover {
+      background-color: var(--color-bg-elevated);
+      color: var(--color-text-primary);
+    }
+  }
+
+  &__body {
+    padding: 2.4rem;
+    overflow-y: auto;
+    @include custom-scrollbar;
+    display: flex;
+    flex-direction: column;
+    gap: 1.8rem;
+  }
+
+  &__footer {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 1.2rem;
+    padding: 1.6rem 2.4rem;
+    border-top: 1px solid var(--color-border-subtle);
+    background-color: var(--color-bg-surface);
+  }
+}
+
+/* Form Controls */
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+
+  &__label {
+    font-size: 1.3rem;
+    font-weight: 600;
+    color: var(--color-text-primary);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  &__hint {
+    font-size: 1.15rem;
+    color: var(--color-text-muted);
+    font-weight: 400;
+  }
+
+  &__input,
+  &__textarea,
+  &__select {
+    width: 100%;
+    background-color: var(--color-bg-surface);
+    border: 1px solid var(--color-border-subtle);
+    border-radius: var(--radius-md);
+    padding: 1rem 1.4rem;
+    font-size: 1.4rem;
+    color: var(--color-text-primary);
+    transition: all var(--transition-fast);
+
+    &::placeholder {
+      color: var(--color-text-muted);
+    }
+
+    &:focus {
+      outline: none;
+      border-color: var(--color-primary);
+      box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
+      background-color: var(--color-bg-elevated);
+    }
+  }
+
+  &__textarea {
+    resize: vertical;
+    min-height: 12rem;
+    line-height: 1.5;
+
+    &--code {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 1.3rem;
+      background-color: var(--color-bg-code);
+    }
+  }
+}
+
+/* Backward compatibility for add-issue-box */
+.add-issue-box {
+  @extend .ui-modal-backdrop;
+
+  .add-issue-form {
+    @extend .ui-modal;
+    padding: 2.4rem;
+    gap: 1.6rem;
+    position: relative;
+
+    .close__button {
+      position: absolute;
+      top: 1.6rem;
+      right: 1.6rem;
+      @extend .ui-modal__close;
+    }
+
+    .signup-form__input {
+      @extend .form-group__input;
+    }
+
+    .signup-form__button {
+      @extend .btn;
+      @extend .btn--primary;
+      margin-top: 1rem;
+    }
+  }
+}
+
+@keyframes modal-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes modal-slide-up {
+  from { opacity: 0; transform: translateY(12px) scale(0.98); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}

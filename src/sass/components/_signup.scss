@@ -1,71 +1,64 @@
+@use '../abstracts' as *;
+@use './modal' as *;
+@use './button' as *;
+
 .signup-box {
-   position: fixed;
-   width: 100%;
-   height: 100vh;
-   top: 0;
-   left: 0;
-   background-color: rgba(0, 0, 0, 0.3);
-   z-index: 2;
-   display: flex;
-   justify-content: center;
-   align-items: center;
+  @extend .ui-modal-backdrop;
 }
 
 .signup-form {
-   display: flex;
-   flex-direction: column;
-   align-items: center;
-   justify-content: center;
-   background-color: var(--color-light-1);
-   min-width: 36rem;
-   min-height: 45rem;
-   border-radius: 1rem;
-   position: relative;
+  @extend .ui-modal;
+  max-width: 460px;
+  padding: 3.2rem 2.8rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.6rem;
+  position: relative;
+  text-align: left;
 
-   & > h3 {
-      font-size: 4.5rem;
-      text-transform: capitalize;
-      margin-bottom: 5rem;
-   }
+  & > h3 {
+    font-size: 2.2rem;
+    font-weight: 700;
+    color: var(--color-text-primary);
+    text-align: center;
+    margin-bottom: 1.2rem;
+  }
 
-   & > input,
-   & > button {
-      margin: 0.5rem;
-   }
+  &__input {
+    width: 100%;
+    padding: 1.1rem 1.4rem;
+    background-color: var(--color-bg-surface);
+    border: 1px solid var(--color-border-subtle);
+    border-radius: var(--radius-md);
+    font-size: 1.4rem;
+    color: var(--color-text-primary);
+    transition: all var(--transition-fast);
 
-   &__input {
-      font-family: inherit;
-      color: inherit;
-      font-size: 2.5rem;
-      padding: 0.5rem 2rem;
-      border: none;
-      border-radius: 0.4rem;
-      background-color: var(--color-light-2);
-   }
+    &::placeholder {
+      color: var(--color-text-muted);
+    }
 
-   &__input::placeholder {
-      text-transform: capitalize;
-   }
+    &:focus {
+      outline: none;
+      border-color: var(--color-primary);
+      box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
+      background-color: var(--color-bg-elevated);
+    }
+  }
 
-   &__button {
-      background: none;
-      border: 0.2rem solid var(--primary-color);
-      font-size: 2.5rem;
-      padding: 0.8rem 3.5rem;
-      border-radius: 6rem;
-      cursor: pointer;
-      transition: all 0.4s;
-   }
+  &__button {
+    @extend .btn;
+    @extend .btn--primary;
+    width: 100%;
+    padding: 1.1rem;
+    font-size: 1.45rem;
+    margin-top: 1rem;
+  }
 
-   &__button:hover {
-      background: var(--primary-color);
-   }
-
-   &__button:active {
-      transform: translateY(0.8rem);
-   }
-}
-.signup-form__input:focus,
-.login-form__button:focus {
-   outline: none;
+  .close__button {
+    position: absolute;
+    top: 1.6rem;
+    right: 1.6rem;
+    @extend .ui-modal__close;
+  }
 }

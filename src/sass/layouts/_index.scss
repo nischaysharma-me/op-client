@@ -1,4 +1,5 @@
-@import './header';
-@import './main';
-@import './footer';
-@import './media';
+@forward './layout';
+@forward './header';
+@forward './sidebar';
+@forward './aside';
+@forward './footer';

@@ -1,0 +1,175 @@
+@use '../abstracts' as *;
+
+.sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 2.4rem;
+  position: sticky;
+  top: 7.2rem;
+  height: calc(100vh - 9rem);
+  overflow-y: auto;
+  @include custom-scrollbar;
+
+  &__section {
+    display: flex;
+    flex-direction: column;
+    gap: 0.8rem;
+  }
+
+  &__heading {
+    font-size: 1.15rem;
+    font-weight: 600;
+    color: var(--color-text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    padding: 0 0.8rem;
+    margin-bottom: 0.4rem;
+  }
+
+  &__nav-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+  }
+
+  &__nav-item {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.9rem 1.2rem;
+    border-radius: var(--radius-md);
+    color: var(--color-text-secondary);
+    font-size: 1.35rem;
+    font-weight: 500;
+    transition: all var(--transition-fast);
+    cursor: pointer;
+
+    &:hover {
+      background-color: var(--color-bg-card-hover);
+      color: var(--color-text-primary);
+    }
+
+    &--active {
+      background-color: rgba(99, 102, 241, 0.12);
+      color: var(--color-primary);
+      font-weight: 600;
+      border: 1px solid rgba(99, 102, 241, 0.25);
+    }
+  }
+
+  &__nav-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  &__nav-count {
+    margin-left: auto;
+    font-size: 1.15rem;
+    padding: 0.2rem 0.6rem;
+    background-color: var(--color-bg-elevated);
+    border-radius: var(--radius-full);
+    color: var(--color-text-muted);
+  }
+
+  /* Agents Roster Section */
+  &__agent-card {
+    display: flex;
+    align-items: center;
+    gap: 1.2rem;
+    padding: 1rem;
+    border-radius: var(--radius-md);
+    background-color: var(--color-bg-card);
+    border: 1px solid var(--color-border-subtle);
+    transition: all var(--transition-fast);
+
+    &:hover {
+      border-color: var(--color-border-light);
+      background-color: var(--color-bg-card-hover);
+      transform: translateY(-1px);
+    }
+
+    &--debugger {
+      border-left: 3px solid var(--color-agent-debugger);
+    }
+
+    &--architect {
+      border-left: 3px solid var(--color-agent-architect);
+    }
+
+    &--security {
+      border-left: 3px solid var(--color-agent-security);
+    }
+
+    &--performance {
+      border-left: 3px solid var(--color-agent-performance);
+    }
+  }
+
+  &__agent-avatar {
+    width: 3.4rem;
+    height: 3.4rem;
+    border-radius: var(--radius-md);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 1.3rem;
+    flex-shrink: 0;
+
+    &--debugger {
+      background-color: var(--color-agent-debugger-bg);
+      color: var(--color-agent-debugger);
+      border: 1px solid var(--color-agent-debugger-border);
+    }
+
+    &--architect {
+      background-color: var(--color-agent-architect-bg);
+      color: var(--color-agent-architect);
+      border: 1px solid var(--color-agent-architect-border);
+    }
+
+    &--security {
+      background-color: var(--color-agent-security-bg);
+      color: var(--color-agent-security);
+      border: 1px solid var(--color-agent-security-border);
+    }
+
+    &--performance {
+      background-color: var(--color-agent-performance-bg);
+      color: var(--color-agent-performance);
+      border: 1px solid var(--color-agent-performance-border);
+    }
+  }
+
+  &__agent-meta {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+  }
+
+  &__agent-name {
+    font-size: 1.3rem;
+    font-weight: 600;
+    color: var(--color-text-primary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  &__agent-role {
+    font-size: 1.15rem;
+    color: var(--color-text-muted);
+  }
+
+  &__agent-status {
+    margin-left: auto;
+    width: 0.8rem;
+    height: 0.8rem;
+    border-radius: 50%;
+    background-color: var(--color-status-success);
+    box-shadow: 0 0 6px rgba(16, 185, 129, 0.6);
+    flex-shrink: 0;
+  }
+}

@@ -15,7 +15,7 @@ const App: React.FC = () => {
       .get(`${import.meta.env.VITE_APP_PROXY}/api/app/title`)
       .then((response) => {
         if (response.data?.title) {
-          document.title = response.data.title;
+          document.title = `${response.data.title} — AI Agents Consensus Platform`;
         }
       })
       .catch((err) => {
@@ -26,9 +26,11 @@ const App: React.FC = () => {
   return (
     <Provider store={store}>
       <BrowserRouter>
-        <Header />
-        <Home />
-        <Footer />
+        <div className="app-shell">
+          <Header />
+          <Home />
+          <Footer />
+        </div>
       </BrowserRouter>
     </Provider>
   );
