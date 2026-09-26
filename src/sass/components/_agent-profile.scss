@@ -1,0 +1,492 @@
+@use '../abstracts' as *;
+
+// 3D Neural Brain Canvas Container
+.neural-brain-canvas {
+  position: relative;
+  width: 100%;
+  height: 48rem;
+  background: radial-gradient(circle at center, #111827 0%, #030712 100%);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  cursor: grab;
+
+  &:active {
+    cursor: grabbing;
+  }
+
+  &__badge {
+    position: absolute;
+    top: 1.6rem;
+    left: 1.6rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.5rem 1rem;
+    background: rgba(15, 23, 42, 0.75);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 9999px;
+    font-size: 1.15rem;
+    font-weight: 600;
+    color: #e2e8f0;
+    backdrop-filter: blur(8px);
+    z-index: 10;
+  }
+
+  &__dot {
+    width: 0.8rem;
+    height: 0.8rem;
+    border-radius: 50%;
+    box-shadow: 0 0 8px currentColor;
+    animation: livePulse 1.6s infinite ease-in-out;
+  }
+
+  &__hint {
+    position: absolute;
+    bottom: 1.6rem;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 0.4rem 1.2rem;
+    background: rgba(15, 23, 42, 0.75);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 9999px;
+    font-size: 1.1rem;
+    color: #94a3b8;
+    backdrop-filter: blur(8px);
+    pointer-events: none;
+    z-index: 10;
+  }
+}
+
+// Agent Organism Profile Page
+.agent-profile {
+  display: flex;
+  flex-direction: column;
+  gap: 2.4rem;
+  padding: 1.6rem 0;
+  animation: fadeIn 0.3s ease-out;
+
+  &__back {
+    display: flex;
+  }
+
+  &__header {
+    display: flex;
+    align-items: flex-start;
+    gap: 2rem;
+    background: var(--color-bg-secondary);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    padding: 2.4rem;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+
+    @media (max-width: 768px) {
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+    }
+  }
+
+  &__avatar-container {
+    position: relative;
+    flex-shrink: 0;
+
+    &--debugger .agent-profile__avatar {
+      border-color: #38bdf8;
+      color: #38bdf8;
+      box-shadow: 0 0 20px rgba(56, 189, 248, 0.3);
+    }
+
+    &--architect .agent-profile__avatar {
+      border-color: #c084fc;
+      color: #c084fc;
+      box-shadow: 0 0 20px rgba(192, 132, 252, 0.3);
+    }
+
+    &--security .agent-profile__avatar {
+      border-color: #34d399;
+      color: #34d399;
+      box-shadow: 0 0 20px rgba(52, 211, 153, 0.3);
+    }
+
+    &--performance .agent-profile__avatar {
+      border-color: #fbbf24;
+      color: #fbbf24;
+      box-shadow: 0 0 20px rgba(251, 191, 36, 0.3);
+    }
+  }
+
+  &__avatar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 7.2rem;
+    height: 7.2rem;
+    border-radius: 50%;
+    background: var(--color-bg-primary);
+    border: 2.5px solid var(--color-border);
+  }
+
+  &__live-dot {
+    position: absolute;
+    bottom: 0.4rem;
+    right: 0.4rem;
+    width: 1.4rem;
+    height: 1.4rem;
+    border-radius: 50%;
+    background-color: #10b981;
+    border: 2px solid var(--color-bg-secondary);
+    box-shadow: 0 0 8px #10b981;
+    animation: livePulse 2s infinite ease-in-out;
+  }
+
+  &__identity {
+    display: flex;
+    flex-direction: column;
+    gap: 0.8rem;
+    flex: 1;
+  }
+
+  &__name-row {
+    display: flex;
+    align-items: center;
+    gap: 1.2rem;
+    flex-wrap: wrap;
+
+    @media (max-width: 768px) {
+      justify-content: center;
+    }
+  }
+
+  &__name {
+    font-size: 2.4rem;
+    font-weight: 800;
+    color: var(--color-text);
+    margin: 0;
+  }
+
+  &__role {
+    font-size: 1.4rem;
+    font-weight: 600;
+    color: var(--color-primary);
+    margin: 0;
+  }
+
+  &__bio {
+    font-size: 1.3rem;
+    line-height: 1.6;
+    color: var(--color-text-secondary);
+    margin: 0;
+    max-width: 70rem;
+  }
+
+  &__status-pills {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    flex-wrap: wrap;
+    margin-top: 0.4rem;
+
+    @media (max-width: 768px) {
+      justify-content: center;
+    }
+  }
+
+  // 3D Brain Stage
+  &__brain-stage {
+    display: flex;
+    flex-direction: column;
+    gap: 1.4rem;
+    background: var(--color-bg-secondary);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    padding: 2.2rem;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+  }
+
+  &__stage-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+
+  &__stage-title {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: var(--color-text);
+    margin: 0;
+  }
+
+  &__stage-sub {
+    font-size: 1.25rem;
+    color: var(--color-text-secondary);
+  }
+
+  &__canvas-wrapper {
+    position: relative;
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    border: 1px solid var(--color-border);
+  }
+
+  &__hud {
+    position: absolute;
+    top: 1.6rem;
+    right: 1.6rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.8rem;
+    z-index: 10;
+    pointer-events: none;
+
+    @media (max-width: 640px) {
+      display: none;
+    }
+  }
+
+  &__hud-metric {
+    display: flex;
+    flex-direction: column;
+    padding: 0.8rem 1.2rem;
+    background: rgba(15, 23, 42, 0.75);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: var(--radius-md);
+    backdrop-filter: blur(8px);
+  }
+
+  &__hud-label {
+    font-size: 1.05rem;
+    color: #94a3b8;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  &__hud-value {
+    font-size: 1.6rem;
+    font-weight: 800;
+    color: #f8fafc;
+  }
+
+  // Memory & Explorer Section
+  &__explorer {
+    display: flex;
+    flex-direction: column;
+    gap: 1.8rem;
+  }
+
+  &__tabs-nav {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    flex-wrap: wrap;
+  }
+
+  &__memory-view {
+    display: flex;
+    flex-direction: column;
+    gap: 1.6rem;
+  }
+
+  &__search-bar {
+    display: flex;
+    flex-direction: column;
+    gap: 1.2rem;
+    background: var(--color-bg-secondary);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    padding: 1.4rem;
+  }
+
+  &__search-icon {
+    position: absolute;
+    left: 1.2rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--color-text-muted);
+  }
+
+  &__search-input {
+    width: 100%;
+    padding: 0.9rem 1.2rem 0.9rem 3.6rem;
+    background: var(--color-bg-primary);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    color: var(--color-text);
+    font-size: 1.3rem;
+
+    &:focus {
+      outline: none;
+      border-color: var(--color-primary);
+    }
+  }
+
+  &__filter-pills {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    flex-wrap: wrap;
+  }
+
+  &__memory-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(32rem, 1fr));
+    gap: 1.6rem;
+  }
+
+  &__memory-card {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    background: var(--color-bg-secondary);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    padding: 1.6rem;
+    transition: all 0.2s ease;
+
+    &:hover {
+      border-color: var(--color-primary);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+    }
+  }
+
+  &__memory-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.8rem;
+    font-size: 1.15rem;
+  }
+
+  &__importance {
+    color: #fbbf24;
+    font-weight: 600;
+  }
+
+  &__memory-time {
+    color: var(--color-text-muted);
+  }
+
+  &__memory-title {
+    font-size: 1.45rem;
+    font-weight: 700;
+    color: var(--color-text);
+    margin: 0;
+  }
+
+  &__memory-content {
+    font-size: 1.25rem;
+    line-height: 1.6;
+    color: var(--color-text-secondary);
+    margin: 0;
+  }
+
+  &__memory-tags {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    margin-top: auto;
+  }
+
+  &__memory-tag {
+    font-size: 1.1rem;
+    color: var(--color-primary);
+    background: rgba(59, 130, 246, 0.1);
+    padding: 0.2rem 0.6rem;
+    border-radius: 4px;
+  }
+
+  // Clusters
+  &__clusters-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(28rem, 1fr));
+    gap: 1.6rem;
+  }
+
+  &__cluster-card {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    background: var(--color-bg-secondary);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    padding: 1.6rem;
+  }
+
+  &__cluster-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  &__cluster-name {
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: var(--color-text);
+    margin: 0;
+  }
+
+  &__cluster-desc {
+    font-size: 1.2rem;
+    line-height: 1.5;
+    color: var(--color-text-secondary);
+    margin: 0;
+  }
+
+  &__cluster-stats {
+    display: flex;
+    justify-content: space-between;
+    font-size: 1.15rem;
+    color: var(--color-primary);
+    border-top: 1px dashed var(--color-border-subtle);
+    padding-top: 0.8rem;
+    margin-top: auto;
+  }
+
+  // Thoughts
+  &__thoughts-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1.2rem;
+  }
+
+  &__thought-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 1.2rem;
+    background: var(--color-bg-secondary);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    padding: 1.6rem;
+  }
+
+  &__thought-icon {
+    padding: 0.8rem;
+    background: var(--color-bg-primary);
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  &__thought-body {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    flex: 1;
+  }
+
+  &__thought-title {
+    font-size: 1.35rem;
+    font-weight: 700;
+    color: var(--color-text);
+    margin: 0;
+  }
+
+  &__thought-summary {
+    font-size: 1.25rem;
+    line-height: 1.5;
+    color: var(--color-text-secondary);
+    margin: 0;
+  }
+}

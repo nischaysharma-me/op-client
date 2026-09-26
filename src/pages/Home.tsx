@@ -8,10 +8,13 @@ import Logout from "./auth/Logout";
 import Sidebar from "../layout/Sidebar";
 import AsidePanel from "../layout/AsidePanel";
 import ModelsPage from "./Models/ModelsPage";
+import AgentProfilePage from "./Agent/AgentProfilePage";
 
 const Home: React.FC = () => {
   const location = useLocation();
   const isModelsPage = location.pathname.startsWith("/models");
+  const isAgentPage = location.pathname.startsWith("/agent");
+  const isWidePage = isModelsPage || isAgentPage;
 
   return (
     <div className="app-shell__body">
@@ -19,11 +22,11 @@ const Home: React.FC = () => {
         <Sidebar />
       </div>
 
-      <main className="app-shell__main" style={isModelsPage ? { gridColumn: "span 2" } : {}}>
-        {isModelsPage ? <ModelsPage /> : <Issues />}
+      <main className="app-shell__main" style={isWidePage ? { gridColumn: "span 2" } : {}}>
+        {isAgentPage ? <AgentProfilePage /> : isModelsPage ? <ModelsPage /> : <Issues />}
       </main>
 
-      {!isModelsPage && (
+      {!isWidePage && (
         <div className="app-shell__aside">
           <AsidePanel />
         </div>
@@ -35,6 +38,7 @@ const Home: React.FC = () => {
         <Route path="/create-issue" element={<CreateIssue />} />
         <Route path="/logout" element={<Logout />} />
         <Route path="/models" element={<></>} />
+        <Route path="/agent/:code" element={<></>} />
         <Route path="/" element={<></>} />
       </Routes>
     </div>

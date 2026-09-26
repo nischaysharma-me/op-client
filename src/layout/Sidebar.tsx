@@ -120,20 +120,26 @@ const Sidebar: React.FC<SidebarProps> = ({ currentFilter = "all", onFilterChange
         <div className="sidebar__section">
           {agents.map((agent) => {
             const AgentIcon = agent.icon;
+            const isActive = location.pathname === `/agent/${agent.modifier}`;
             return (
-              <div 
+              <Link 
                 key={agent.id} 
-                className={`sidebar__agent-card sidebar__agent-card--${agent.modifier}`}
+                to={`/agent/${agent.modifier}`}
+                style={{ textDecoration: "none", color: "inherit", display: "block" }}
               >
-                <div className={`sidebar__agent-avatar sidebar__agent-avatar--${agent.modifier}`}>
-                  <AgentIcon size={18} />
+                <div 
+                  className={`sidebar__agent-card sidebar__agent-card--${agent.modifier} ${isActive ? "sidebar__agent-card--active" : ""}`}
+                >
+                  <div className={`sidebar__agent-avatar sidebar__agent-avatar--${agent.modifier}`}>
+                    <AgentIcon size={18} />
+                  </div>
+                  <div className="sidebar__agent-meta">
+                    <span className="sidebar__agent-name">{agent.name}</span>
+                    <span className="sidebar__agent-role">{agent.role}</span>
+                  </div>
+                  <span className="sidebar__agent-status" title="Online & Listening • Click for 3D Brain & Memory" />
                 </div>
-                <div className="sidebar__agent-meta">
-                  <span className="sidebar__agent-name">{agent.name}</span>
-                  <span className="sidebar__agent-role">{agent.role}</span>
-                </div>
-                <span className="sidebar__agent-status" title="Online & Listening" />
-              </div>
+              </Link>
             );
           })}
         </div>
