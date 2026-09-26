@@ -2,11 +2,13 @@ import React, { useState, ChangeEvent, FormEvent } from "react";
 import { Link, Navigate } from "react-router-dom";
 import { useAppDispatch } from "../../store/hooks";
 import { addIssue } from "../../store/issues/actions";
-import { X, Sparkles, Code, Terminal, Bot } from "lucide-react";
+import { X, Sparkles, Code, Bot, Plus, Trash2 } from "lucide-react";
+import { TipTapEditor } from "../../components/TipTapEditor/TipTapEditor";
 
 const IssueForm: React.FC = () => {
   const [isIssueCreated, setIssueCreated] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showCodeSnippet, setShowCodeSnippet] = useState(false);
   const dispatch = useAppDispatch();
 
   const [form, setForm] = useState({
@@ -37,13 +39,17 @@ const IssueForm: React.FC = () => {
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    if (!form.title.trim() || !form.content.trim()) return;
+    if (!form.title.trim() || !form.content.trim()) {
+      showNotification("Please provide both a title and detailed context.");
+      return;
+    }
 
     setIsSubmitting(true);
-    // Combine description and code snippet if provided
-    const combinedContent = form.codeSnippet.trim()
-      ? `${form.content.trim()}\n\n\`\`\`\n${form.codeSnippet.trim()}\n\`\`\``
-      : form.content.trim();
+    // Combine description and code snippet ONLY if user opted to provide one
+    const combinedContent =
+      showCodeSnippet && form.codeSnippet.trim()
+        ? `${form.content.trim()}\n\n\`\`\`\n${form.codeSnippet.trim()}\n\`\`\``
+        : form.content.trim();
 
     const success = await dispatch(addIssue(form.title, combinedContent));
     setIsSubmitting(false);
@@ -68,9 +74,9 @@ const IssueForm: React.FC = () => {
               <Bot size={18} />
             </div>
             <div>
-              <h3 className="ui-modal__title">Ask AI Agents</h3>
+              <h3 className="ui-modal__title">Post Topic / Ask AI Swarm</h3>
               <p style={{ fontSize: "1.2rem", color: "var(--color-text-muted)" }}>
-                Debugger, Architect, Security & Performance agents will investigate
+                Start a general discussion, debate, or submit a technical trouble
               </p>
             </div>
           </div>
@@ -91,12 +97,12 @@ const IssueForm: React.FC = () => {
 
             <div className="form-group">
               <label className="form-group__label">
-                <span>Trouble Summary / Title</span>
+                <span>Title / Summary</span>
                 <span className="form-group__hint">Be concise and specific</span>
               </label>
               <input
                 type="text"
-                placeholder="e.g. Memory leak in WebSocket server upon client disconnect"
+                placeholder="e.g. What is the Ending of One Piece? or Memory leak in WebSocket server"
                 className="form-group__input"
                 name="title"
                 value={form.title}
@@ -107,37 +113,69 @@ const IssueForm: React.FC = () => {
 
             <div className="form-group">
               <label className="form-group__label">
-                <span>Detailed Symptoms & Context</span>
-                <span className="form-group__hint">What happened vs expected</span>
+                <span>Detailed Context & Thoughts</span>
+                <span className="form-group__hint">Rich editor (bold, lists, headings)</span>
               </label>
-              <textarea
-                placeholder="Explain the runtime environment, unexpected errors, or steps to reproduce..."
-                className="form-group__textarea"
-                rows={4}
-                name="content"
-                value={form.content}
-                onChange={handleChange}
-                required
+              <TipTapEditor
+                content={form.content}
+                placeholder="Share your thoughts, symptoms, perspective, or question..."
+                onChange={(_html, text) => {
+                  setForm((prev) => ({ ...prev, content: text }));
+                }}
               />
             </div>
 
-            <div className="form-group">
-              <label className="form-group__label">
-                <span style={{ display: "flex", alignItems: "center", gap: "0.6rem" }}>
-                  <Code size={15} />
-                  <span>Code Snippet or Stack Trace (Optional)</span>
-                </span>
-                <span className="form-group__hint">Monospace code context</span>
-              </label>
-              <textarea
-                placeholder="// Paste suspect handler, configuration, or stack trace here"
-                className="form-group__textarea form-group__textarea--code"
-                rows={4}
-                name="codeSnippet"
-                value={form.codeSnippet}
-                onChange={handleChange}
-              />
-            </div>
+            {/* Optional Collapsible Code Snippet */}
+            {!showCodeSnippet ? (
+              <div style={{ margin: "1.2rem 0" }}>
+                <button
+                  type="button"
+                  className="btn btn--outline btn--sm"
+                  onClick={() => setShowCodeSnippet(true)}
+                  style={{ display: "inline-flex", alignItems: "center", gap: "0.6rem" }}
+                  title="Attach code snippet or logs if applicable"
+                >
+                  <Plus size={14} />
+                  <Code size={14} />
+                  <span>Attach Code Snippet (Optional)</span>
+                </button>
+                <p style={{ fontSize: "1.1rem", color: "var(--color-text-muted)", marginTop: "0.4rem" }}>
+                  💡 Code snippets are completely optional. Non-technical questions or discussions do not need code.
+                </p>
+              </div>
+            ) : (
+              <div className="form-group">
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.4rem" }}>
+                  <label className="form-group__label" style={{ marginBottom: 0 }}>
+                    <span style={{ display: "flex", alignItems: "center", gap: "0.6rem" }}>
+                      <Code size={15} />
+                      <span>Code Snippet or Logs (Optional)</span>
+                    </span>
+                  </label>
+                  <button
+                    type="button"
+                    className="btn btn--ghost btn--sm"
+                    onClick={() => {
+                      setShowCodeSnippet(false);
+                      setForm((prev) => ({ ...prev, codeSnippet: "" }));
+                    }}
+                    style={{ fontSize: "1.1rem", color: "var(--color-text-muted)" }}
+                    title="Remove code snippet"
+                  >
+                    <Trash2 size={12} style={{ marginRight: "0.4rem" }} />
+                    Remove Code
+                  </button>
+                </div>
+                <textarea
+                  placeholder="// Paste suspect handler, configuration, or logs here..."
+                  className="form-group__textarea form-group__textarea--code"
+                  rows={4}
+                  name="codeSnippet"
+                  value={form.codeSnippet}
+                  onChange={handleChange}
+                />
+              </div>
+            )}
 
             <div className="form-group">
               <label className="form-group__label">

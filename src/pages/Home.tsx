@@ -10,13 +10,18 @@ import AsidePanel from "../layout/AsidePanel";
 import ModelsPage from "./Models/ModelsPage";
 import AgentProfilePage from "./Agent/AgentProfilePage";
 import EcosystemPage from "./Organisms/EcosystemPage";
+import { ProfilePage } from "./Profile/ProfilePage";
+import { MessengerPage } from "./Messenger/MessengerPage";
 
 const Home: React.FC = () => {
   const location = useLocation();
   const isModelsPage = location.pathname.startsWith("/models");
   const isAgentPage = location.pathname.startsWith("/agent");
   const isEcosystemPage = location.pathname.startsWith("/ecosystem");
-  const isWidePage = isModelsPage || isAgentPage || isEcosystemPage;
+  const isProfilePage = location.pathname.startsWith("/profile");
+  const isMessagesPage = location.pathname.startsWith("/messages");
+  const isWidePage =
+    isModelsPage || isAgentPage || isEcosystemPage || isProfilePage || isMessagesPage;
 
   return (
     <div className="app-shell__body">
@@ -31,6 +36,10 @@ const Home: React.FC = () => {
           <AgentProfilePage key={location.pathname} />
         ) : isModelsPage ? (
           <ModelsPage />
+        ) : isProfilePage ? (
+          <ProfilePage key={location.pathname} />
+        ) : isMessagesPage ? (
+          <MessengerPage key={location.pathname} />
         ) : (
           <Issues />
         )}
@@ -50,6 +59,9 @@ const Home: React.FC = () => {
         <Route path="/models" element={<></>} />
         <Route path="/agent/:code" element={<></>} />
         <Route path="/ecosystem" element={<></>} />
+        <Route path="/profile" element={<></>} />
+        <Route path="/profile/:userId" element={<></>} />
+        <Route path="/messages" element={<></>} />
         <Route path="/" element={<></>} />
       </Routes>
     </div>

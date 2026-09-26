@@ -10,7 +10,9 @@ import {
   ShieldCheck, 
   Zap,
   Sparkles,
-  Dna
+  Dna,
+  MessageSquare,
+  User
 } from "lucide-react";
 
 interface SidebarProps {
@@ -99,6 +101,24 @@ const Sidebar: React.FC<SidebarProps> = ({ currentFilter = "all", onFilterChange
               <span className="sidebar__nav-count" style={{ background: "rgba(56, 189, 248, 0.15)", color: "#38bdf8", fontWeight: 700 }}>
                 LIVE
               </span>
+            </div>
+          </Link>
+
+          <Link to="/messages" style={{ textDecoration: "none" }}>
+            <div className={`sidebar__nav-item ${location.pathname.startsWith("/messages") ? "sidebar__nav-item--active" : ""}`}>
+              <span className="sidebar__nav-icon" style={{ color: "#38bdf8" }}>
+                <MessageSquare size={18} />
+              </span>
+              <span>Direct Messenger</span>
+            </div>
+          </Link>
+
+          <Link to="/profile" style={{ textDecoration: "none" }}>
+            <div className={`sidebar__nav-item ${location.pathname.startsWith("/profile") ? "sidebar__nav-item--active" : ""}`}>
+              <span className="sidebar__nav-icon">
+                <User size={18} />
+              </span>
+              <span>My Profile</span>
             </div>
           </Link>
 
