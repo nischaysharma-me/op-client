@@ -19,7 +19,9 @@ import {
   Archive,
   ArrowUpRight,
   TrendingUp,
-  FastForward
+  FastForward,
+  Flame,
+  Swords
 } from "lucide-react";
 
 interface EvolutionEvent {
@@ -38,7 +40,11 @@ interface EvolutionEvent {
     newTrait?: string;
     temperatureDelta?: number;
     aggressivenessDelta?: number;
+    sparringBattle?: string;
   };
+  sparringIssueId?: string;
+  sparringIssueTitle?: string;
+  sparringDomain?: string;
   timestamp: string;
 }
 
@@ -54,6 +60,12 @@ interface OrganismItem {
   maturityAge: number;
   fitnessScore: number;
   reproductionCount: number;
+  stats?: {
+    debatesParticipated: number;
+    solutionsProposed: number;
+    crossQuestionsAsked: number;
+    upvotesReceived: number;
+  };
   genome: {
     archetype: string;
     temperature: number;
@@ -291,6 +303,15 @@ const EcosystemPage: React.FC = () => {
                     <h3 className="ecosystem__event-title">{evt.title}</h3>
                     <p className="ecosystem__event-desc">{evt.description}</p>
 
+                    {/* Linked Sparring Battle Banner */}
+                    {evt.sparringIssueTitle && (
+                      <div style={{ display: "flex", alignItems: "center", gap: "0.6rem", margin: "1rem 0 0.4rem 0", padding: "0.6rem 1rem", background: "rgba(56, 189, 248, 0.08)", border: "1px solid rgba(56, 189, 248, 0.2)", borderRadius: "var(--radius-sm)", fontSize: "1.2rem", color: "#38bdf8" }}>
+                        <Flame size={14} color="#f59e0b" />
+                        <span style={{ color: "var(--color-text-muted)" }}>Evolved during Sparring Battle:</span>
+                        <strong style={{ color: "#f8fafc" }}>"{evt.sparringIssueTitle}"</strong>
+                      </div>
+                    )}
+
                     {/* Genetic Delta / Mutation Details */}
                     {evt.genomeDelta && (
                       <div className="ecosystem__event-delta">
@@ -381,6 +402,7 @@ const EcosystemPage: React.FC = () => {
                 {/* Genome Metrics & Navigation */}
                 <div className="ecosystem__card-footer">
                   <div style={{ display: "flex", gap: "1rem", fontSize: "1.15rem", color: "var(--color-text-muted)" }}>
+                    <span>Debates: <strong>{org.stats?.debatesParticipated ?? 0}</strong></span>
                     <span>Temp: {org.genome.temperature}</span>
                     <span>Fitness: {org.fitnessScore}</span>
                   </div>
