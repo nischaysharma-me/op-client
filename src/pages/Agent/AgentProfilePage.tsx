@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useParams, useLocation, Link } from "react-router-dom";
 import axios from "axios";
 import {
   Brain,
@@ -7,19 +7,20 @@ import {
   ShieldCheck,
   Zap,
   Terminal,
-  Activity,
   Layers,
   Database,
   Search,
   Sparkles,
   ArrowLeft,
   CheckCircle2,
-  Clock,
+  AlertCircle,
+  HelpCircle,
   Tag,
+  Clock,
   Radio,
-  Share2,
-  Compass,
-  Award
+  ExternalLink,
+  ChevronDown,
+  ChevronUp
 } from "lucide-react";
 import NeuralBrainCanvas, { NeuronNodeData } from "../../components/Brain3D/NeuralBrainCanvas";
 
@@ -27,9 +28,8 @@ interface BrainState {
   agentCode: string;
   displayName: string;
   specialty: string;
-  evolutionLevel: number;
-  neuralPlasticity: number;
-  neuralFrequency: string;
+  modelProvider?: string;
+  status?: string;
   pineconeStatus: {
     isConfigured: boolean;
     indexName: string;
@@ -41,6 +41,7 @@ interface BrainState {
     semanticCount: number;
     reflexiveCount: number;
     solutionsCount: number;
+    neuronCount: number;
   };
   cognitiveClusters: string[];
   recentThoughts: Array<{
@@ -69,9 +70,32 @@ interface AgentMemoryItem {
   createdAt?: string;
 }
 
+const AGENT_ROSTER = [
+  { code: "DEBUGGER", path: "debugger", name: "Dexter", role: "Root Cause & Debugging", icon: Terminal, color: "#38bdf8" },
+  { code: "ARCHITECT", path: "architect", name: "Ada", role: "System & Architecture", icon: Cpu, color: "#c084fc" },
+  { code: "SECURITY", path: "security", name: "Sentinel", role: "Security & Risk Auditor", icon: ShieldCheck, color: "#34d399" },
+  { code: "PERFORMANCE", path: "performance", name: "Turbo", role: "Performance & Efficiency", icon: Zap, color: "#fbbf24" },
+];
+
 const AgentProfilePage: React.FC = () => {
-  const { code } = useParams<{ code: string }>();
-  const agentCode = (code || "debugger").toUpperCase();
+  const { code: paramCode } = useParams<{ code: string }>();
+  const location = useLocation();
+
+  // Robust code resolution whether mounted inside Route or in Home layout
+  const pathSegment = location.pathname.startsWith("/agent/")
+    ? location.pathname.replace("/agent/", "").split("/")[0]?.trim().toLowerCase()
+    : "";
+
+  const rawCode = (paramCode || pathSegment || "debugger").toLowerCase();
+
+  const codeMap: Record<string, string> = {
+    debugger: "DEBUGGER",
+    architect: "ARCHITECT",
+    security: "SECURITY",
+    performance: "PERFORMANCE",
+  };
+
+  const agentCode = codeMap[rawCode] || rawCode.toUpperCase();
 
   const [brainState, setBrainState] = useState<BrainState | null>(null);
   const [memories, setMemories] = useState<AgentMemoryItem[]>([]);
@@ -80,6 +104,7 @@ const AgentProfilePage: React.FC = () => {
   const [selectedType, setSelectedType] = useState<string>("ALL");
   const [loading, setLoading] = useState(true);
   const [searching, setSearching] = useState(false);
+  const [showPineconeGuide, setShowPineconeGuide] = useState(false);
 
   // Agent theme styling
   const getTheme = () => {
@@ -92,7 +117,7 @@ const AgentProfilePage: React.FC = () => {
           secondary: "#3b82f6",
           mod: "debugger",
           icon: Terminal,
-          bio: "Autonomous diagnostic digital organism. Specializes in dissecting runtime exceptions, tracing event listener closures, and uncovering ground truth in complex real-world situations.",
+          bio: "Autonomous diagnostic sparring partner. Investigates unhandled exceptions, call stacks, runtime bugs, and physical real-world emergency trouble conditions.",
         };
       case "ARCHITECT":
         return {
@@ -102,7 +127,7 @@ const AgentProfilePage: React.FC = () => {
           secondary: "#a855f7",
           mod: "architect",
           icon: Cpu,
-          bio: "Visionary structural architect. Designs modular system boundaries, decoupling registries, and resilient multi-phase contingency frameworks for systemic continuity.",
+          bio: "Structural design and strategy specialist. Focuses on decoupled architectures, registry boundaries, domain isolation, and multi-phase contingency roadmaps.",
         };
       case "SECURITY":
         return {
@@ -112,7 +137,7 @@ const AgentProfilePage: React.FC = () => {
           secondary: "#10b981",
           mod: "security",
           icon: ShieldCheck,
-          bio: "Vigilant risk auditor. Scrutinizes attack surfaces, slowloris socket exhaustion, physical safety hazards, and authentication boundaries.",
+          bio: "Security auditor and risk analyst. Identifies denial-of-service attack vectors, socket leaks, authentication vulnerabilities, and environmental hazards.",
         };
       case "PERFORMANCE":
         return {
@@ -122,17 +147,17 @@ const AgentProfilePage: React.FC = () => {
           secondary: "#f59e0b",
           mod: "performance",
           icon: Zap,
-          bio: "High-impact execution optimizer. Minimizes V8 garbage collection pauses, stabilizes heap climb, and optimizes critical emergency resource sequencing.",
+          bio: "Execution speed and throughput optimizer. Minimizes memory allocations, GC pause latency, non-blocking asynchronous event loops, and resource conservation.",
         };
       default:
         return {
-          name: "Agent",
-          role: "Cognitive Specialist",
+          name: "Dexter",
+          role: "Root Cause & Investigation Specialist",
           color: "#38bdf8",
           secondary: "#3b82f6",
           mod: "debugger",
-          icon: Sparkles,
-          bio: "Autonomous digital citizen organism.",
+          icon: Terminal,
+          bio: "Autonomous AI sparring partner in Opinions Poll.",
         };
     }
   };
@@ -141,6 +166,7 @@ const AgentProfilePage: React.FC = () => {
   const IconComponent = theme.icon;
 
   useEffect(() => {
+    let isMounted = true;
     const fetchData = async () => {
       setLoading(true);
       try {
@@ -148,16 +174,23 @@ const AgentProfilePage: React.FC = () => {
           axios.get(`${import.meta.env.VITE_APP_PROXY}/api/agents/${agentCode}/brain`),
           axios.get(`${import.meta.env.VITE_APP_PROXY}/api/agents/${agentCode}/memories`),
         ]);
-        setBrainState(brainRes.data);
-        setMemories(memoriesRes.data || []);
+        if (isMounted) {
+          setBrainState(brainRes.data);
+          setMemories(memoriesRes.data || []);
+        }
       } catch (err) {
         console.error("Error loading agent brain state:", err);
       } finally {
-        setLoading(false);
+        if (isMounted) {
+          setLoading(false);
+        }
       }
     };
 
     fetchData();
+    return () => {
+      isMounted = false;
+    };
   }, [agentCode]);
 
   const handleSearch = async (e: React.FormEvent) => {
@@ -183,31 +216,54 @@ const AgentProfilePage: React.FC = () => {
 
   return (
     <div className="agent-profile">
-      {/* Back link */}
+      {/* Top Navigation & Agent Switcher Roster */}
       <div className="agent-profile__back">
         <Link to="/" className="btn btn--ghost btn--sm">
           <ArrowLeft size={14} />
           <span>Back to Feed</span>
         </Link>
+
+        {/* Instant Agent Switcher Tabs */}
+        <div className="agent-profile__roster-bar">
+          <span className="agent-profile__roster-label">Switch Agent:</span>
+          <div className="agent-profile__roster-buttons">
+            {AGENT_ROSTER.map((agent) => {
+              const isCurrent = agent.code === agentCode;
+              const ItemIcon = agent.icon;
+              return (
+                <Link
+                  key={agent.code}
+                  to={`/agent/${agent.path}`}
+                  className={`agent-profile__roster-btn ${isCurrent ? "agent-profile__roster-btn--active" : ""}`}
+                  style={isCurrent ? { borderColor: agent.color, color: agent.color } : {}}
+                >
+                  <ItemIcon size={14} />
+                  <span>{agent.name}</span>
+                  <small>({agent.path})</small>
+                </Link>
+              );
+            })}
+          </div>
+        </div>
       </div>
 
-      {/* Organism Identity Header */}
+      {/* Agent Identity Header */}
       <header className="agent-profile__header">
         <div className={`agent-profile__avatar-container agent-profile__avatar-container--${theme.mod}`}>
           <div className="agent-profile__avatar">
             <IconComponent size={32} />
           </div>
-          <span className="agent-profile__live-dot" title="Organism Online & Thinking" />
+          <span className="agent-profile__live-dot" title="Agent Online & Listening" />
         </div>
 
-        <div className="agent-profile__identity">
+        <div className="agent-profile__identity" style={{ flex: 1 }}>
           <div className="agent-profile__name-row">
             <h1 className="agent-profile__name">{theme.name}</h1>
             <span className="badge badge--pill badge--tag">
-              <Sparkles size={12} /> Digital Citizen Organism
+              <Sparkles size={12} /> AI Sparring Partner
             </span>
-            <span className="badge badge--pill" style={{ background: "rgba(59, 130, 246, 0.15)", color: "#60a5fa" }}>
-              Level {brainState?.evolutionLevel || 5} Evolution
+            <span className="badge badge--pill badge--resolved">
+              <Radio size={12} /> {brainState?.status || "Active & Sparring Ready"}
             </span>
           </div>
 
@@ -215,33 +271,66 @@ const AgentProfilePage: React.FC = () => {
           <p className="agent-profile__bio">{theme.bio}</p>
 
           <div className="agent-profile__status-pills">
-            <span className="badge badge--resolved badge--pill">
-              <Radio size={12} /> {brainState?.neuralFrequency || "142 Hz (Active Cognition)"}
-            </span>
-            <span className="badge badge--cross badge--pill">
-              <Database size={12} />
-              {brainState?.pineconeStatus.isConfigured
-                ? "Pinecone Vector RAG (Connected)"
-                : "Local Semantic Memory (Pinecone Ready)"}
-            </span>
-            <span className="badge badge--tag badge--pill">
-              <Activity size={12} /> {brainState?.neuralPlasticity || 98.4}% Synaptic Plasticity
-            </span>
+            {/* Real Model Provider from DB */}
+            <Link to="/models" style={{ textDecoration: "none" }}>
+              <span className="badge badge--tag badge--pill" title="Configured in OpenRouter Arena">
+                <Cpu size={12} /> Model: {brainState?.modelProvider || "LangChain OpenRouter"}
+              </span>
+            </Link>
+
+            {/* Pinecone Vector DB Connection Status */}
+            {brainState?.pineconeStatus.isConfigured ? (
+              <span className="badge badge--resolved badge--pill" title="Active Pinecone Vector Database">
+                <CheckCircle2 size={12} /> Pinecone Vector DB: {brainState.pineconeStatus.indexName} ({brainState.pineconeStatus.totalVectors} vectors)
+              </span>
+            ) : (
+              <button
+                type="button"
+                onClick={() => setShowPineconeGuide(!showPineconeGuide)}
+                className="badge badge--cross badge--pill"
+                style={{ cursor: "pointer", border: "none" }}
+                title="Click to view how to connect Pinecone"
+              >
+                <Database size={12} />
+                <span>Local MongoDB Store (Pinecone Setup Available)</span>
+                {showPineconeGuide ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
+              </button>
+            )}
           </div>
+
+          {/* Collapsible Pinecone Instructions Card */}
+          {showPineconeGuide && (
+            <div className="agent-profile__pinecone-setup">
+              <div style={{ display: "flex", alignItems: "center", gap: "0.8rem", marginBottom: "0.8rem" }}>
+                <Database size={16} color="#38bdf8" />
+                <strong style={{ color: "#f8fafc" }}>How to connect Pinecone Vector DB</strong>
+              </div>
+              <p>
+                To enable vector embeddings and semantic similarity RAG across all agents, configure your credentials in <code>op-server/.env</code>:
+              </p>
+              <pre>
+PINECONE_API_KEY="your-pinecone-api-key"
+PINECONE_INDEX="opinion-polls-agents"
+              </pre>
+              <p style={{ marginTop: "0.8rem", color: "var(--color-text-muted)" }}>
+                💡 <strong>Index Setup in Pinecone Console:</strong> Create a serverless index named <code>opinion-polls-agents</code> with <strong>1024 dimensions</strong> (matching <code>multilingual-e5-large</code>) and metric <strong>cosine</strong>. When saved, the server immediately upgrades semantic search to live vector embeddings!
+              </p>
+            </div>
+          )}
         </div>
       </header>
 
-      {/* Hero 3D Brain WebGL Stage */}
+      {/* 3D Brain WebGL Stage */}
       <section className="agent-profile__brain-stage">
         <div className="agent-profile__stage-header">
           <div style={{ display: "flex", alignItems: "center", gap: "0.8rem" }}>
             <Brain size={18} style={{ color: theme.color }} />
             <h2 className="agent-profile__stage-title">
-              Cognitive 3D Brain & Synaptic Network
+              Cognitive 3D Neural Architecture
             </h2>
           </div>
           <span className="agent-profile__stage-sub">
-            Real-time particle simulation of {theme.name}'s memory clusters & active neurons
+            Spatial representation of {theme.name}'s memory bank, synaptic links & active thoughts
           </span>
         </div>
 
@@ -251,35 +340,37 @@ const AgentProfilePage: React.FC = () => {
             accentColor={theme.color}
             secondaryColor={theme.secondary}
             topology={brainState?.topology}
-            pulseSpeed={1.2}
+            pulseSpeed={1.1}
           />
 
-          {/* Vitals HUD Overlays */}
+          {/* Vitals HUD Overlays - Real Database Counts */}
           <div className="agent-profile__hud">
             <div className="agent-profile__hud-metric">
               <span className="agent-profile__hud-label">Total Space Memories</span>
               <strong className="agent-profile__hud-value">
-                {brainState?.metrics.totalMemories || memories.length}
+                {brainState?.metrics.totalMemories ?? memories.length}
               </strong>
             </div>
 
             <div className="agent-profile__hud-metric">
-              <span className="agent-profile__hud-label">Verified Solutions</span>
+              <span className="agent-profile__hud-label">Solution Knowledge</span>
               <strong className="agent-profile__hud-value">
-                {brainState?.metrics.solutionsCount || 4}
+                {brainState?.metrics.solutionsCount ?? 0}
               </strong>
             </div>
 
             <div className="agent-profile__hud-metric">
               <span className="agent-profile__hud-label">Episodic Experiences</span>
               <strong className="agent-profile__hud-value">
-                {brainState?.metrics.episodicCount || 3}
+                {brainState?.metrics.episodicCount ?? 0}
               </strong>
             </div>
 
             <div className="agent-profile__hud-metric">
-              <span className="agent-profile__hud-label">Neural Vertices</span>
-              <strong className="agent-profile__hud-value">420</strong>
+              <span className="agent-profile__hud-label">Synaptic Vertices</span>
+              <strong className="agent-profile__hud-value">
+                {brainState?.metrics.neuronCount ?? brainState?.topology?.length ?? 0}
+              </strong>
             </div>
           </div>
         </div>
@@ -294,7 +385,7 @@ const AgentProfilePage: React.FC = () => {
             onClick={() => setActiveTab("memories")}
           >
             <Database size={14} />
-            <span>Memory Bank & RAG Explorer ({memories.length})</span>
+            <span>Memory Bank & RAG ({memories.length})</span>
           </button>
 
           <button
@@ -303,7 +394,7 @@ const AgentProfilePage: React.FC = () => {
             onClick={() => setActiveTab("clusters")}
           >
             <Layers size={14} />
-            <span>Cognitive Clusters ({brainState?.cognitiveClusters.length || 4})</span>
+            <span>Domain Focus Clusters ({brainState?.cognitiveClusters.length || 0})</span>
           </button>
 
           <button
@@ -327,25 +418,24 @@ const AgentProfilePage: React.FC = () => {
                   <input
                     type="text"
                     className="agent-profile__search-input"
-                    placeholder={`Search ${theme.name}'s memory bank (e.g. 'websocket', 'storm', 'slowloris')...`}
+                    placeholder={`Search ${theme.name}'s memory bank (e.g. 'websocket', 'storm', 'slowloris', 'heap')...`}
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                   />
                 </div>
                 <button type="submit" className="btn btn--primary btn--sm" disabled={searching}>
-                  {searching ? "Searching..." : "Semantic Search"}
+                  {searching ? "Retrieving..." : "Semantic Search"}
                 </button>
               </form>
 
-              {/* Type filter pills */}
-              <div className="agent-profile__filter-pills">
+              {/* Memory Type Filter Pills */}
+              <div className="agent-profile__type-filters">
                 {["ALL", "SOLUTION_KNOWLEDGE", "EPISODIC", "SEMANTIC", "REFLEXIVE"].map((type) => (
                   <button
                     key={type}
                     type="button"
-                    className={`badge badge--pill ${selectedType === type ? "badge--resolved" : "badge--tag"}`}
+                    className={`agent-profile__type-pill ${selectedType === type ? "agent-profile__type-pill--active" : ""}`}
                     onClick={() => setSelectedType(type)}
-                    style={{ cursor: "pointer", border: "none" }}
                   >
                     {type.replace("_", " ")}
                   </button>
@@ -354,69 +444,76 @@ const AgentProfilePage: React.FC = () => {
             </div>
 
             {/* Memories List */}
-            <div className="agent-profile__memory-grid">
-              {filteredMemories.map((mem) => (
-                <article key={mem._id} className="agent-profile__memory-card">
-                  <div className="agent-profile__memory-header">
-                    <span className="badge badge--pill badge--tag">
-                      {mem.memoryType.replace("_", " ")}
-                    </span>
-                    <span className="agent-profile__importance">
-                      ★ {mem.importanceScore}/10 Importance
-                    </span>
-                    <span className="agent-profile__memory-time">
-                      {mem.isIndexedInPinecone ? "Pinecone Vector" : "Local Vector"}
-                    </span>
-                  </div>
-
-                  <h3 className="agent-profile__memory-title">{mem.title}</h3>
-                  <p className="agent-profile__memory-content">{mem.content}</p>
-
-                  {mem.keywords && mem.keywords.length > 0 && (
-                    <div className="agent-profile__memory-tags">
-                      {mem.keywords.map((kw, i) => (
-                        <span key={i} className="agent-profile__memory-tag">
-                          #{kw}
-                        </span>
-                      ))}
+            {loading ? (
+              <div style={{ textAlign: "center", padding: "4rem", color: "var(--color-text-muted)" }}>
+                Loading {theme.name}'s space memories...
+              </div>
+            ) : filteredMemories.length === 0 ? (
+              <div style={{ textAlign: "center", padding: "4rem", color: "var(--color-text-muted)" }}>
+                No memories found matching your search.
+              </div>
+            ) : (
+              <div className="agent-profile__memory-grid">
+                {filteredMemories.map((mem) => (
+                  <article key={mem._id} className="agent-profile__memory-card">
+                    <div className="agent-profile__memory-top">
+                      <span className="badge badge--pill badge--tag" style={{ textTransform: "capitalize" }}>
+                        {mem.memoryType.toLowerCase().replace("_", " ")}
+                      </span>
+                      <span className="agent-profile__importance" title="Memory Importance Rating">
+                        ★ {mem.importanceScore}/10
+                      </span>
                     </div>
-                  )}
-                </article>
-              ))}
 
-              {filteredMemories.length === 0 && (
-                <div style={{ textAlign: "center", padding: "3rem", color: "var(--color-text-secondary)" }}>
-                  No memories match your search query.
-                </div>
-              )}
-            </div>
+                    <h3 className="agent-profile__memory-title">{mem.title}</h3>
+                    <p className="agent-profile__memory-text">{mem.content}</p>
+
+                    <div className="agent-profile__memory-footer">
+                      <div className="agent-profile__tags">
+                        {(mem.tags || []).map((t, idx) => (
+                          <span key={idx} className="badge badge--tag">
+                            #{t}
+                          </span>
+                        ))}
+                      </div>
+
+                      {mem.isIndexedInPinecone && (
+                        <span className="badge badge--resolved badge--pill" title="Vector indexed in Pinecone">
+                          <CheckCircle2 size={10} /> Vector Indexed
+                        </span>
+                      )}
+                    </div>
+                  </article>
+                ))}
+              </div>
+            )}
           </div>
         )}
 
         {/* Tab 2: Cognitive Clusters */}
         {activeTab === "clusters" && (
-          <div className="agent-profile__clusters-grid">
-            {(brainState?.cognitiveClusters || []).map((cluster, idx) => (
-              <div key={idx} className="agent-profile__cluster-card">
-                <div className="agent-profile__cluster-header">
-                  <div className={`trouble-card__agent-dot trouble-card__agent-dot--${theme.mod}`}>
-                    {idx + 1}
+          <div className="agent-profile__clusters-view">
+            <p style={{ color: "var(--color-text-secondary)", marginBottom: "1.6rem", fontSize: "1.3rem" }}>
+              These cognitive domains define {theme.name}'s specialized problem-solving focus in debates:
+            </p>
+            <div className="agent-profile__clusters-grid">
+              {(brainState?.cognitiveClusters || []).map((cluster, idx) => (
+                <div key={idx} className="agent-profile__cluster-card">
+                  <div className="agent-profile__cluster-header">
+                    <Layers size={18} style={{ color: theme.color }} />
+                    <span className="agent-profile__cluster-index">Domain #{idx + 1}</span>
                   </div>
-                  <h3 className="agent-profile__cluster-name">{cluster}</h3>
+                  <h4 className="agent-profile__cluster-title">{cluster}</h4>
+                  <p className="agent-profile__cluster-desc">
+                    Specialized neural memory subspace for resolving complex challenges within this domain.
+                  </p>
                 </div>
-                <p className="agent-profile__cluster-desc">
-                  Active neural pathway dedicated to domain modeling, cross-examination patterns, and solution validation.
-                </p>
-                <div className="agent-profile__cluster-stats">
-                  <span>Capacity: Optimal</span>
-                  <span>Plasticity: 98.4%</span>
-                </div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
         )}
 
-        {/* Tab 3: Recent Thoughts */}
+        {/* Tab 3: Recent Deliberations */}
         {activeTab === "thoughts" && (
           <div className="agent-profile__thoughts-list">
             {(brainState?.recentThoughts || []).map((thought, idx) => (
