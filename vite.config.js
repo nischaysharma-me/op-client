@@ -6,10 +6,13 @@ export default defineConfig({
   server: {
     port: 4000,
   },
+  css: {
+    postcss: false,
+  },
   test: {
     globals: true,
     environment: 'jsdom',
-    setupFiles: './src/setupTests.js',
+    setupFiles: './src/setupTests.ts',
     css: true,
   },
 });

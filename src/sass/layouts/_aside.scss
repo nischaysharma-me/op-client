@@ -1,0 +1,146 @@
+@use '../abstracts' as *;
+
+.aside-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  position: sticky;
+  top: 7.2rem;
+  height: calc(100vh - 9rem);
+  overflow-y: auto;
+  @include custom-scrollbar;
+
+  &__card {
+    background-color: var(--color-bg-card);
+    border: 1px solid var(--color-border-subtle);
+    border-radius: var(--radius-lg);
+    padding: 1.8rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.4rem;
+
+    &--highlight {
+      border-color: rgba(99, 102, 241, 0.35);
+      background: linear-gradient(180deg, rgba(99, 102, 241, 0.08) 0%, rgba(15, 23, 42, 0.4) 100%);
+    }
+  }
+
+  &__card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+  }
+
+  &__card-title {
+    font-size: 1.4rem;
+    font-weight: 600;
+    color: var(--color-text-primary);
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+  }
+
+  &__card-desc {
+    font-size: 1.25rem;
+    color: var(--color-text-secondary);
+    line-height: 1.5;
+  }
+
+  /* Consensus Meter */
+  &__consensus-box {
+    display: flex;
+    flex-direction: column;
+    gap: 0.8rem;
+    background-color: var(--color-bg-elevated);
+    padding: 1.2rem;
+    border-radius: var(--radius-md);
+  }
+
+  &__consensus-meta {
+    display: flex;
+    justify-content: space-between;
+    font-size: 1.2rem;
+  }
+
+  &__consensus-label {
+    color: var(--color-text-secondary);
+  }
+
+  &__consensus-value {
+    color: var(--color-status-success);
+    font-weight: 700;
+  }
+
+  &__meter-bar {
+    width: 100%;
+    height: 0.8rem;
+    background-color: var(--color-bg-base);
+    border-radius: var(--radius-full);
+    overflow: hidden;
+  }
+
+  &__meter-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #6366f1, #10b981);
+    border-radius: var(--radius-full);
+    transition: width 0.5s ease-out;
+  }
+
+  /* Stats Grid */
+  &__stats-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+  }
+
+  &__stat-box {
+    background-color: var(--color-bg-elevated);
+    padding: 1.2rem;
+    border-radius: var(--radius-md);
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+  }
+
+  &__stat-number {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: var(--color-text-primary);
+  }
+
+  &__stat-caption {
+    font-size: 1.15rem;
+    color: var(--color-text-muted);
+  }
+
+  /* Protocol Steps */
+  &__protocol-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1.2rem;
+  }
+
+  &__protocol-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    font-size: 1.25rem;
+    color: var(--color-text-secondary);
+  }
+
+  &__protocol-num {
+    width: 2rem;
+    height: 2rem;
+    border-radius: 50%;
+    background-color: var(--color-bg-elevated);
+    border: 1px solid var(--color-border-subtle);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--color-primary);
+    flex-shrink: 0;
+  }
+}

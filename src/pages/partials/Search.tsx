@@ -3,8 +3,8 @@ import { useForm } from "react-hook-form";
 import { useSelector } from "react-redux";
 import { useAppDispatch } from "../../store/hooks";
 import type { RootState } from "../../store/store";
-import Icon from "../../components/Icons";
 import { FILTER_ISSUES } from "../../store/issues/issueSlice";
+import { Search as SearchIcon } from "lucide-react";
 
 interface SearchFormData {
   search: string;
@@ -31,17 +31,18 @@ const Search: React.FC = () => {
   };
 
   return (
-    <form action="#" className="search" onSubmit={(e) => e.preventDefault()}>
+    <form className="top-header__search" onSubmit={(e) => e.preventDefault()}>
+      <div className="top-header__search-icon">
+        <SearchIcon size={16} />
+      </div>
       <input
         type="text"
-        className="search__input"
-        placeholder="Search your Issue"
+        className="top-header__search-input"
+        placeholder="Search developer troubles, code errors, or tags..."
         {...register("search")}
         onKeyUp={handleSubmit(handleSearchEvent)}
       />
-      <button className="search__button" type="submit">
-        <Icon iconName="magnifying-glass" styleName="search__icon" />
-      </button>
+      <span className="top-header__search-shortcut">/</span>
     </form>
   );
 };

@@ -1,0 +1,51 @@
+@use '../abstracts' as *;
+
+.app-shell {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background-color: var(--color-bg-base);
+
+  &__body {
+    flex: 1;
+    display: grid;
+    grid-template-columns: 260px 1fr 320px;
+    gap: 2.4rem;
+    max-width: 1600px;
+    width: 100%;
+    margin: 0 auto;
+    padding: 2.4rem 2rem;
+
+    @include respond-max(1200px) {
+      grid-template-columns: 240px 1fr;
+    }
+
+    @include respond-max(900px) {
+      grid-template-columns: 1fr;
+      padding: 1.6rem 1.2rem;
+    }
+  }
+
+  &__sidebar {
+    display: block;
+
+    @include respond-max(900px) {
+      display: none; // collapsible on mobile
+    }
+  }
+
+  &__main {
+    min-width: 0; // prevent flex/grid overflow with code blocks
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+  }
+
+  &__aside {
+    display: block;
+
+    @include respond-max(1200px) {
+      display: none;
+    }
+  }
+}

@@ -9,7 +9,7 @@ test('renders opinion polls title', async () => {
   vi.mocked(axios.get).mockResolvedValue({ data: { title: 'Test Title' } });
   
   render(<App />);
-  const titleElement = screen.getByText(/opinion polls/i);
+  const titleElement = screen.getByRole('heading', { name: /opinion polls/i });
   expect(titleElement).toBeInTheDocument();
   
   await waitFor(() => expect(axios.get).toHaveBeenCalled());
