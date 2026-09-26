@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { useSelector } from "react-redux";
 import type { RootState } from "../store/store";
 import Search from "../pages/partials/Search";
-import { Bot, Plus, LogIn, LogOut, Sparkles } from "lucide-react";
+import { Bot, Plus, LogIn, LogOut, Sparkles, MessageSquare, User } from "lucide-react";
 
 const Header: React.FC = () => {
   const isAuth = useSelector((state: RootState) => state.auth.isAuth);
@@ -40,6 +40,18 @@ const Header: React.FC = () => {
           </Link>
           {isAuth ? (
             <>
+              <Link to="/messages">
+                <button type="button" className="btn btn--ghost btn--sm" title="Direct Messenger">
+                  <MessageSquare size={16} className="btn__icon" />
+                  <span className="btn__text">Messages</span>
+                </button>
+              </Link>
+              <Link to="/profile">
+                <button type="button" className="btn btn--secondary btn--sm" title="My Profile">
+                  <User size={15} className="btn__icon" />
+                  <span className="btn__text">Profile</span>
+                </button>
+              </Link>
               <Link to="/create-issue">
                 <button type="button" className="btn btn--primary btn--sm">
                   <Plus size={16} className="btn__icon" />
