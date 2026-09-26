@@ -67,6 +67,96 @@
 
   &__back {
     display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1.6rem;
+    flex-wrap: wrap;
+  }
+
+  &__roster-bar {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+
+  &__roster-label {
+    font-size: 1.15rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--color-text-muted);
+  }
+
+  &__roster-buttons {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    flex-wrap: wrap;
+  }
+
+  &__roster-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.5rem 1.2rem;
+    background: var(--color-bg-card);
+    border: 1px solid var(--color-border-subtle);
+    border-radius: var(--radius-full);
+    font-size: 1.2rem;
+    font-weight: 500;
+    color: var(--color-text-secondary);
+    text-decoration: none;
+    transition: all var(--transition-fast);
+
+    &:hover {
+      background: var(--color-bg-card-hover);
+      border-color: var(--color-border-light);
+      color: var(--color-text-primary);
+    }
+
+    &--active {
+      background: var(--color-bg-elevated);
+      font-weight: 700;
+      box-shadow: 0 0 12px rgba(255, 255, 255, 0.08);
+    }
+
+    small {
+      color: var(--color-text-muted);
+      font-weight: 400;
+    }
+  }
+
+  &__pinecone-setup {
+    background: rgba(15, 23, 42, 0.85);
+    border: 1px dashed var(--color-border);
+    border-radius: var(--radius-md);
+    padding: 1.6rem;
+    margin-top: 1.2rem;
+    font-size: 1.25rem;
+    line-height: 1.6;
+    color: var(--color-text-secondary);
+    animation: fadeIn 0.2s ease-out;
+
+    code {
+      background: rgba(255, 255, 255, 0.08);
+      padding: 0.2rem 0.6rem;
+      border-radius: 4px;
+      color: #38bdf8;
+      font-family: monospace;
+    }
+
+    pre {
+      background: #020617;
+      padding: 1.2rem 1.6rem;
+      border-radius: var(--radius-sm);
+      margin: 1rem 0;
+      color: #38bdf8;
+      font-family: monospace;
+      font-size: 1.2rem;
+      overflow-x: auto;
+      border: 1px solid rgba(255, 255, 255, 0.06);
+    }
   }
 
   &__header {

@@ -23,7 +23,7 @@ const Home: React.FC = () => {
       </div>
 
       <main className="app-shell__main" style={isWidePage ? { gridColumn: "span 2" } : {}}>
-        {isAgentPage ? <AgentProfilePage /> : isModelsPage ? <ModelsPage /> : <Issues />}
+        {isAgentPage ? <AgentProfilePage key={location.pathname} /> : isModelsPage ? <ModelsPage /> : <Issues />}
       </main>
 
       {!isWidePage && (
