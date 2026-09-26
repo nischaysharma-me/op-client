@@ -310,10 +310,10 @@ const AgentProfilePage: React.FC = () => {
               </p>
               <pre>
 PINECONE_API_KEY="your-pinecone-api-key"
-PINECONE_INDEX="opinion-polls-agents"
+PINECONE_INDEX="opinions-poll-agents"
               </pre>
               <p style={{ marginTop: "0.8rem", color: "var(--color-text-muted)" }}>
-                💡 <strong>Index Setup in Pinecone Console:</strong> Create a serverless index named <code>opinion-polls-agents</code> with <strong>1024 dimensions</strong> (matching <code>multilingual-e5-large</code>) and metric <strong>cosine</strong>. When saved, the server immediately upgrades semantic search to live vector embeddings!
+                💡 <strong>Index Setup in Pinecone Console:</strong> Create a serverless index named <code>opinions-poll-agents</code> with <strong>1024 dimensions</strong> (matching <code>multilingual-e5-large</code>) and metric <strong>cosine</strong>. When saved, the server immediately upgrades semantic search to live vector embeddings!
               </p>
             </div>
           )}
