@@ -32,6 +32,12 @@ const Header: React.FC = () => {
         </div>
 
         <div className="top-header__actions">
+          <Link to="/models">
+            <button type="button" className="btn btn--secondary btn--sm">
+              <Sparkles size={15} className="btn__icon" />
+              <span className="btn__text">Model Arena</span>
+            </button>
+          </Link>
           {isAuth ? (
             <>
               <Link to="/create-issue">

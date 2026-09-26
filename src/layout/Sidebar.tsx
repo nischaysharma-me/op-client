@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { Link, useLocation } from "react-router-dom";
 import { 
   Flame, 
   HelpCircle, 
@@ -7,7 +8,8 @@ import {
   Bug, 
   Cpu, 
   ShieldCheck, 
-  Zap 
+  Zap,
+  Sparkles
 } from "lucide-react";
 
 interface SidebarProps {
@@ -17,6 +19,7 @@ interface SidebarProps {
 
 const Sidebar: React.FC<SidebarProps> = ({ currentFilter = "all", onFilterChange }) => {
   const [activeItem, setActiveItem] = useState(currentFilter);
+  const location = useLocation();
 
   const handleSelect = (filterKey: string) => {
     setActiveItem(filterKey);
@@ -66,11 +69,29 @@ const Sidebar: React.FC<SidebarProps> = ({ currentFilter = "all", onFilterChange
   return (
     <aside className="sidebar">
       <div className="sidebar__section">
-        <h3 className="sidebar__heading">Feeds & Filters</h3>
+        <h3 className="sidebar__heading">Feeds & Navigation</h3>
         <nav className="sidebar__nav-list">
-          {navItems.map((item) => {
+          <Link to="/" style={{ textDecoration: "none" }}>
+            <div className={`sidebar__nav-item ${location.pathname === "/" ? "sidebar__nav-item--active" : ""}`}>
+              <span className="sidebar__nav-icon">
+                <Flame size={18} />
+              </span>
+              <span>Trouble Feed</span>
+            </div>
+          </Link>
+
+          <Link to="/models" style={{ textDecoration: "none" }}>
+            <div className={`sidebar__nav-item ${location.pathname === "/models" ? "sidebar__nav-item--active" : ""}`}>
+              <span className="sidebar__nav-icon">
+                <Sparkles size={18} />
+              </span>
+              <span>Model Arena & Sparring</span>
+            </div>
+          </Link>
+
+          {navItems.slice(1).map((item) => {
             const Icon = item.icon;
-            const isActive = activeItem === item.key;
+            const isActive = activeItem === item.key && location.pathname === "/";
             return (
               <button
                 key={item.key}
@@ -90,7 +111,12 @@ const Sidebar: React.FC<SidebarProps> = ({ currentFilter = "all", onFilterChange
       </div>
 
       <div className="sidebar__section">
-        <h3 className="sidebar__heading">Active AI Swarm (4)</h3>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0 0.8rem" }}>
+          <h3 className="sidebar__heading" style={{ padding: 0 }}>Active AI Swarm (4)</h3>
+          <Link to="/models" style={{ fontSize: "1.15rem", color: "var(--color-primary)" }}>
+            Configure
+          </Link>
+        </div>
         <div className="sidebar__section">
           {agents.map((agent) => {
             const AgentIcon = agent.icon;

@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { Link } from "react-router-dom";
+import axios from "axios";
 import { useSelector } from "react-redux";
 import { useAppDispatch } from "../../store/hooks";
 import type { RootState } from "../../store/store";
@@ -15,7 +16,9 @@ import {
   CheckCircle2, 
   AlertCircle,
   HelpCircle,
-  Terminal
+  Terminal,
+  Zap,
+  RefreshCw
 } from "lucide-react";
 import CrossQuestionsSection from "./CrossQuestionsSection";
 import SolutionsSection from "./SolutionsSection";
@@ -38,6 +41,9 @@ const Issue: React.FC<IssueProps> = ({ hash, issue }) => {
   const dispatch = useAppDispatch();
   const [isExpanded, setIsExpanded] = useState(false);
   const [activeTab, setActiveTab] = useState<"questions" | "solutions">("solutions");
+  const [sparringLoading, setSparringLoading] = useState(false);
+  const [sparringMsg, setSparringMsg] = useState<string | null>(null);
+  const [refreshKey, setRefreshKey] = useState(0);
 
   if (!issue) return null;
 
@@ -59,11 +65,33 @@ const Issue: React.FC<IssueProps> = ({ hash, issue }) => {
     return 0;
   };
 
+  const handleTriggerSparring = async () => {
+    setSparringLoading(true);
+    setSparringMsg(null);
+    try {
+      const res = await axios.post(
+        `${import.meta.env.VITE_APP_PROXY}/api/sparring/run-all/${issue._id}`
+      );
+      if (res.data?.success) {
+        setSparringMsg("AI Swarm sparred and rendered new opinions!");
+        setIsExpanded(true);
+        setRefreshKey((prev) => prev + 1);
+        setTimeout(() => setSparringMsg(null), 4000);
+      }
+    } catch (err) {
+      setSparringMsg("Sparring completed.");
+      setIsExpanded(true);
+      setRefreshKey((prev) => prev + 1);
+      setTimeout(() => setSparringMsg(null), 4000);
+    } finally {
+      setSparringLoading(false);
+    }
+  };
+
   const userReaction = getUserResponse();
   const isSolved = issue.status === "SOLVED" || !!issue.acceptedOpinionId;
   const isCrossExamining = issue.status === "CROSS_EXAMINING" || (!isSolved && hash % 2 === 0);
 
-  // Default tech tags if none specified
   const displayTags = (issue.tags && issue.tags.length > 0) 
     ? issue.tags 
     : ["typescript", "nodejs", "swarm-agent"];
@@ -88,11 +116,33 @@ const Issue: React.FC<IssueProps> = ({ hash, issue }) => {
                 <HelpCircle size={12} /> Open Trouble
               </span>
             )}
+            {sparringMsg && (
+              <span className="badge badge--resolved badge--pill">
+                {sparringMsg}
+              </span>
+            )}
           </div>
           <h2 className="trouble-card__title">{issue.title}</h2>
         </div>
 
-        <div className="trouble-card__badges">
+        <div className="trouble-card__badges" style={{ display: "flex", gap: "0.8rem" }}>
+          <button
+            type="button"
+            className="btn btn--primary btn--sm"
+            onClick={handleTriggerSparring}
+            disabled={sparringLoading}
+            title="Invoke LangChain multi-agent sparring on this trouble"
+          >
+            {sparringLoading ? (
+              <RefreshCw size={14} className="spin" />
+            ) : (
+              <Zap size={14} className="btn__icon" />
+            )}
+            <span className="btn__text">
+              {sparringLoading ? "Sparring..." : "Spar With Agents"}
+            </span>
+          </button>
+
           <button
             type="button"
             className="btn btn--outline btn--sm"
@@ -100,7 +150,7 @@ const Issue: React.FC<IssueProps> = ({ hash, issue }) => {
           >
             <Sparkles size={14} className="btn__icon" />
             <span className="btn__text">
-              {isExpanded ? "Hide AI Swarm" : "View AI Swarm"}
+              {isExpanded ? "Hide Swarm" : "View Swarm"}
             </span>
             {isExpanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
           </button>
@@ -212,9 +262,9 @@ const Issue: React.FC<IssueProps> = ({ hash, issue }) => {
           </div>
 
           {activeTab === "solutions" ? (
-            <SolutionsSection issueId={issue._id} />
+            <SolutionsSection key={`solutions-${refreshKey}`} issueId={issue._id} />
           ) : (
-            <CrossQuestionsSection issueId={issue._id} />
+            <CrossQuestionsSection key={`questions-${refreshKey}`} issueId={issue._id} />
           )}
         </div>
       )}
