@@ -1,0 +1,329 @@
+@use '../abstracts' as *;
+
+.ecosystem {
+  display: flex;
+  flex-direction: column;
+  gap: 2.4rem;
+  padding: 1.6rem 0;
+  animation: fadeIn 0.3s ease-out;
+
+  &__header {
+    background: var(--color-bg-secondary);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    padding: 2.4rem;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+  }
+
+  &__title-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1.6rem;
+    flex-wrap: wrap;
+    margin-bottom: 0.8rem;
+  }
+
+  &__title-group {
+    display: flex;
+    align-items: center;
+    gap: 1.2rem;
+  }
+
+  &__title {
+    font-size: 2.2rem;
+    font-weight: 700;
+    color: var(--color-text-primary);
+  }
+
+  &__subtitle {
+    font-size: 1.35rem;
+    color: var(--color-text-secondary);
+    line-height: 1.5;
+    max-width: 80rem;
+  }
+
+  &__hud {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
+    gap: 1.2rem;
+    margin-top: 2rem;
+  }
+
+  &__hud-item {
+    background: var(--color-bg-card);
+    border: 1px solid var(--color-border-subtle);
+    border-radius: var(--radius-md);
+    padding: 1.2rem 1.6rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+  }
+
+  &__hud-label {
+    font-size: 1.15rem;
+    color: var(--color-text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
+  &__hud-value {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--color-text-primary);
+  }
+
+  &__toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 1.6rem;
+  }
+
+  &__views-nav {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+  }
+
+  &__actions {
+    display: flex;
+    align-items: center;
+    gap: 1.2rem;
+  }
+
+  // Vertical Timeline Feed
+  &__timeline-container {
+    position: relative;
+    padding-left: 2.8rem;
+
+    &::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      left: 1.1rem;
+      width: 2px;
+      background: linear-gradient(to bottom, #38bdf8 0%, #c084fc 50%, #34d399 100%);
+      opacity: 0.35;
+    }
+  }
+
+  &__timeline-event {
+    position: relative;
+    margin-bottom: 2.4rem;
+
+    &::before {
+      content: '';
+      position: absolute;
+      top: 1.8rem;
+      left: -2.25rem;
+      width: 1.1rem;
+      height: 1.1rem;
+      border-radius: 50%;
+      background: #38bdf8;
+      border: 2px solid var(--color-bg-primary);
+      box-shadow: 0 0 10px rgba(56, 189, 248, 0.8);
+      z-index: 2;
+    }
+
+    &--mutation::before {
+      background: #c084fc;
+      box-shadow: 0 0 10px rgba(192, 132, 252, 0.8);
+    }
+
+    &--maturity::before {
+      background: #34d399;
+      box-shadow: 0 0 10px rgba(52, 211, 153, 0.8);
+    }
+
+    &--retired::before {
+      background: #94a3b8;
+      box-shadow: 0 0 8px rgba(148, 163, 184, 0.4);
+    }
+  }
+
+  &__event-card {
+    background: var(--color-bg-card);
+    border: 1px solid var(--color-border-subtle);
+    border-radius: var(--radius-md);
+    padding: 1.8rem;
+    transition: all var(--transition-fast);
+
+    &:hover {
+      border-color: var(--color-border-light);
+      transform: translateX(4px);
+    }
+  }
+
+  &__event-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1.2rem;
+    flex-wrap: wrap;
+    margin-bottom: 0.8rem;
+  }
+
+  &__event-meta {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+  }
+
+  &__event-time {
+    font-size: 1.15rem;
+    color: var(--color-text-muted);
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+  }
+
+  &__event-title {
+    font-size: 1.45rem;
+    font-weight: 600;
+    color: var(--color-text-primary);
+    margin-bottom: 0.6rem;
+  }
+
+  &__event-desc {
+    font-size: 1.25rem;
+    color: var(--color-text-secondary);
+    line-height: 1.5;
+  }
+
+  &__event-delta {
+    margin-top: 1.2rem;
+    padding: 1rem 1.4rem;
+    background: var(--color-bg-primary);
+    border: 1px dashed var(--color-border-subtle);
+    border-radius: var(--radius-sm);
+    display: flex;
+    align-items: center;
+    gap: 1.2rem;
+    flex-wrap: wrap;
+    font-size: 1.2rem;
+  }
+
+  &__delta-badge {
+    padding: 0.2rem 0.6rem;
+    background: rgba(192, 132, 252, 0.15);
+    color: #c084fc;
+    border-radius: 4px;
+    font-weight: 600;
+  }
+
+  // Active Population Grid
+  &__population-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(32rem, 1fr));
+    gap: 1.8rem;
+  }
+
+  &__organism-card {
+    background: var(--color-bg-card);
+    border: 1px solid var(--color-border-subtle);
+    border-radius: var(--radius-lg);
+    padding: 2rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.4rem;
+    position: relative;
+    overflow: hidden;
+    transition: all var(--transition-fast);
+
+    &:hover {
+      border-color: var(--color-border-light);
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+      transform: translateY(-2px);
+    }
+
+    &--mature {
+      border-color: rgba(52, 211, 153, 0.4);
+      box-shadow: 0 0 15px rgba(52, 211, 153, 0.08);
+    }
+
+    &--retired {
+      opacity: 0.65;
+      filter: grayscale(0.2);
+    }
+  }
+
+  &__card-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1.2rem;
+  }
+
+  &__organism-name {
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: var(--color-text-primary);
+  }
+
+  &__organism-code {
+    font-size: 1.1rem;
+    color: var(--color-text-muted);
+    font-family: monospace;
+  }
+
+  &__life-gauge {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+  }
+
+  &__life-header {
+    display: flex;
+    justify-content: space-between;
+    font-size: 1.15rem;
+    color: var(--color-text-secondary);
+  }
+
+  &__life-track {
+    height: 0.6rem;
+    background: var(--color-bg-primary);
+    border-radius: var(--radius-full);
+    overflow: hidden;
+  }
+
+  &__life-fill {
+    height: 100%;
+    border-radius: var(--radius-full);
+    transition: width 0.3s ease;
+
+    &--born {
+      background: #38bdf8;
+    }
+
+    &--maturing {
+      background: #818cf8;
+    }
+
+    &--mature {
+      background: #34d399;
+      box-shadow: 0 0 8px #34d399;
+    }
+
+    &--retired {
+      background: #64748b;
+    }
+  }
+
+  &__traits-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+  }
+
+  &__card-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: auto;
+    padding-top: 1.2rem;
+    border-top: 1px solid var(--color-border-subtle);
+  }
+}

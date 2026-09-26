@@ -9,12 +9,14 @@ import Sidebar from "../layout/Sidebar";
 import AsidePanel from "../layout/AsidePanel";
 import ModelsPage from "./Models/ModelsPage";
 import AgentProfilePage from "./Agent/AgentProfilePage";
+import EcosystemPage from "./Organisms/EcosystemPage";
 
 const Home: React.FC = () => {
   const location = useLocation();
   const isModelsPage = location.pathname.startsWith("/models");
   const isAgentPage = location.pathname.startsWith("/agent");
-  const isWidePage = isModelsPage || isAgentPage;
+  const isEcosystemPage = location.pathname.startsWith("/ecosystem");
+  const isWidePage = isModelsPage || isAgentPage || isEcosystemPage;
 
   return (
     <div className="app-shell__body">
@@ -23,7 +25,15 @@ const Home: React.FC = () => {
       </div>
 
       <main className="app-shell__main" style={isWidePage ? { gridColumn: "span 2" } : {}}>
-        {isAgentPage ? <AgentProfilePage key={location.pathname} /> : isModelsPage ? <ModelsPage /> : <Issues />}
+        {isEcosystemPage ? (
+          <EcosystemPage />
+        ) : isAgentPage ? (
+          <AgentProfilePage key={location.pathname} />
+        ) : isModelsPage ? (
+          <ModelsPage />
+        ) : (
+          <Issues />
+        )}
       </main>
 
       {!isWidePage && (
@@ -39,6 +49,7 @@ const Home: React.FC = () => {
         <Route path="/logout" element={<Logout />} />
         <Route path="/models" element={<></>} />
         <Route path="/agent/:code" element={<></>} />
+        <Route path="/ecosystem" element={<></>} />
         <Route path="/" element={<></>} />
       </Routes>
     </div>
