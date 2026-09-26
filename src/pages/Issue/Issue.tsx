@@ -14,14 +14,16 @@ import {
   ChevronUp, 
   Sparkles, 
   CheckCircle2, 
-  AlertCircle,
-  HelpCircle,
-  Terminal,
-  Zap,
-  RefreshCw
+  AlertCircle, 
+  HelpCircle, 
+  Terminal, 
+  Zap, 
+  RefreshCw,
+  Radio
 } from "lucide-react";
 import CrossQuestionsSection from "./CrossQuestionsSection";
 import SolutionsSection from "./SolutionsSection";
+import StreamingSparringArena from "./StreamingSparringArena";
 
 interface ExtendedIssueItem extends IssueItem {
   status?: string;
@@ -44,6 +46,7 @@ const Issue: React.FC<IssueProps> = ({ hash, issue }) => {
   const [sparringLoading, setSparringLoading] = useState(false);
   const [sparringMsg, setSparringMsg] = useState<string | null>(null);
   const [refreshKey, setRefreshKey] = useState(0);
+  const [isStreamingArenaOpen, setIsStreamingArenaOpen] = useState(false);
 
   if (!issue) return null;
 
@@ -65,27 +68,8 @@ const Issue: React.FC<IssueProps> = ({ hash, issue }) => {
     return 0;
   };
 
-  const handleTriggerSparring = async () => {
-    setSparringLoading(true);
-    setSparringMsg(null);
-    try {
-      const res = await axios.post(
-        `${import.meta.env.VITE_APP_PROXY}/api/sparring/run-all/${issue._id}`
-      );
-      if (res.data?.success) {
-        setSparringMsg("AI Swarm sparred and rendered new opinions!");
-        setIsExpanded(true);
-        setRefreshKey((prev) => prev + 1);
-        setTimeout(() => setSparringMsg(null), 4000);
-      }
-    } catch (err) {
-      setSparringMsg("Sparring completed.");
-      setIsExpanded(true);
-      setRefreshKey((prev) => prev + 1);
-      setTimeout(() => setSparringMsg(null), 4000);
-    } finally {
-      setSparringLoading(false);
-    }
+  const handleTriggerSparring = () => {
+    setIsStreamingArenaOpen((prev) => !prev);
   };
 
   const userReaction = getUserResponse();
@@ -128,18 +112,17 @@ const Issue: React.FC<IssueProps> = ({ hash, issue }) => {
         <div className="trouble-card__badges" style={{ display: "flex", gap: "0.8rem" }}>
           <button
             type="button"
-            className="btn btn--primary btn--sm"
+            className={`btn ${isStreamingArenaOpen ? "btn--secondary" : "btn--primary"} btn--sm`}
             onClick={handleTriggerSparring}
-            disabled={sparringLoading}
-            title="Invoke LangChain multi-agent sparring on this trouble"
+            title="Stream live multi-agent AI sparring"
           >
-            {sparringLoading ? (
-              <RefreshCw size={14} className="spin" />
+            {isStreamingArenaOpen ? (
+              <Radio size={14} style={{ color: "#ef4444" }} />
             ) : (
               <Zap size={14} className="btn__icon" />
             )}
             <span className="btn__text">
-              {sparringLoading ? "Sparring..." : "Spar With Agents"}
+              {isStreamingArenaOpen ? "Streaming Live..." : "Spar With Agents"}
             </span>
           </button>
 
@@ -156,6 +139,22 @@ const Issue: React.FC<IssueProps> = ({ hash, issue }) => {
           </button>
         </div>
       </div>
+
+      {/* Live Real-time Token Streaming Sparring Arena */}
+      {isStreamingArenaOpen && (
+        <StreamingSparringArena
+          issueId={issue._id}
+          issueTitle={issue.title}
+          onClose={() => setIsStreamingArenaOpen(false)}
+          onComplete={() => {
+            setIsExpanded(true);
+            setActiveTab("solutions");
+            setRefreshKey((prev) => prev + 1);
+            setSparringMsg("AI Swarm delivered new solutions!");
+            setTimeout(() => setSparringMsg(null), 5000);
+          }}
+        />
+      )}
 
       {/* Trouble Card Body */}
       <div className="trouble-card__body">
