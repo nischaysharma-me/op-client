@@ -9,7 +9,8 @@ import {
   Cpu, 
   ShieldCheck, 
   Zap,
-  Sparkles
+  Sparkles,
+  Dna
 } from "lucide-react";
 
 interface SidebarProps {
@@ -89,6 +90,18 @@ const Sidebar: React.FC<SidebarProps> = ({ currentFilter = "all", onFilterChange
             </div>
           </Link>
 
+          <Link to="/ecosystem" style={{ textDecoration: "none" }}>
+            <div className={`sidebar__nav-item ${location.pathname === "/ecosystem" ? "sidebar__nav-item--active" : ""}`}>
+              <span className="sidebar__nav-icon" style={{ color: "#38bdf8" }}>
+                <Dna size={18} />
+              </span>
+              <span>Evolution Timeline & GA</span>
+              <span className="sidebar__nav-count" style={{ background: "rgba(56, 189, 248, 0.15)", color: "#38bdf8", fontWeight: 700 }}>
+                LIVE
+              </span>
+            </div>
+          </Link>
+
           {navItems.slice(1).map((item) => {
             const Icon = item.icon;
             const isActive = activeItem === item.key && location.pathname === "/";
@@ -112,9 +125,9 @@ const Sidebar: React.FC<SidebarProps> = ({ currentFilter = "all", onFilterChange
 
       <div className="sidebar__section">
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0 0.8rem" }}>
-          <h3 className="sidebar__heading" style={{ padding: 0 }}>Active AI Swarm (4)</h3>
-          <Link to="/models" style={{ fontSize: "1.15rem", color: "var(--color-primary)" }}>
-            Configure
+          <h3 className="sidebar__heading" style={{ padding: 0 }}>Digital Organisms Swarm</h3>
+          <Link to="/ecosystem" style={{ fontSize: "1.15rem", color: "var(--color-primary)" }}>
+            Timeline
           </Link>
         </div>
         <div className="sidebar__section">
