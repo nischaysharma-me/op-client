@@ -1,13 +1,13 @@
-import React, { useState } from "react";
+import React, { useState, ChangeEvent, FormEvent } from "react";
 import { Link, Navigate } from "react-router-dom";
-import { useDispatch } from "react-redux";
+import { useAppDispatch } from "../../store/hooks";
 import { addIssue } from "../../store/issues/actions";
 import Icon from "../../components/Icons";
 
-const IssueForm = (props) => {
+const IssueForm: React.FC = () => {
   const [isIssueCreated, setIssueCreated] = useState(false);
-  const dispatch = useDispatch();
-  const [credentials, setCredetials] = useState({
+  const dispatch = useAppDispatch();
+  const [credentials, setCredentials] = useState({
     title: "",
     content: "",
   });
@@ -17,25 +17,21 @@ const IssueForm = (props) => {
     text: "",
   });
 
-  const handleChange = (e) => {
+  const handleChange = (
+    e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
     const { name, value } = e.target;
-    setCredetials({ ...credentials, [name]: value });
+    setCredentials({ ...credentials, [name]: value });
   };
 
-  const handleClearField = () => {
-    for (let each in credentials) {
-      setCredetials({ ...credentials, [each]: "" });
-    }
-  };
-
-  const showNotification = (message) => {
+  const showNotification = (message: string) => {
     setNotifier({ isVisible: true, text: message });
     setTimeout(() => {
-      setNotifier({ ...notifier, isVisible: false });
+      setNotifier({ isVisible: false, text: "" });
     }, 2000);
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     const success = await dispatch(
       addIssue(credentials.title, credentials.content)
@@ -46,6 +42,7 @@ const IssueForm = (props) => {
       showNotification("Failed to create issue");
     }
   };
+
   if (isIssueCreated) {
     return <Navigate to="/" />;
   } else {
@@ -65,16 +62,20 @@ const IssueForm = (props) => {
             name="title"
             value={credentials.title}
             onChange={handleChange}
+            required
           />
           <textarea
             placeholder="Content"
             className="signup-form__input"
-            rows="6"
+            rows={6}
             name="content"
             value={credentials.content}
             onChange={handleChange}
+            required
           ></textarea>
-          <button className="signup-form__button">Create Issue</button>
+          <button className="signup-form__button" type="submit">
+            Create Issue
+          </button>
           {notifier.isVisible ? (
             <span className="notification">{notifier.text}</span>
           ) : (
