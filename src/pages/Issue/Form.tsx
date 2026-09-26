@@ -13,7 +13,7 @@ const IssueForm: React.FC = () => {
     title: "",
     content: "",
     codeSnippet: "",
-    tags: "typescript, nodejs",
+    tags: "",
   });
 
   const [notifier, setNotifier] = useState({
@@ -141,12 +141,12 @@ const IssueForm: React.FC = () => {
 
             <div className="form-group">
               <label className="form-group__label">
-                <span>Tags / Tech Stack</span>
+                <span>Tags / Topics (Optional)</span>
                 <span className="form-group__hint">Comma separated</span>
               </label>
               <input
                 type="text"
-                placeholder="typescript, nestjs, websocket, mongodb"
+                placeholder="e.g. anime, one-piece, philosophy or typescript, nodejs"
                 className="form-group__input"
                 name="tags"
                 value={form.tags}

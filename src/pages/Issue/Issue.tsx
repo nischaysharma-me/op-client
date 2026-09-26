@@ -76,9 +76,7 @@ const Issue: React.FC<IssueProps> = ({ hash, issue }) => {
   const isSolved = issue.status === "SOLVED" || !!issue.acceptedOpinionId;
   const isCrossExamining = issue.status === "CROSS_EXAMINING" || (!isSolved && hash % 2 === 0);
 
-  const displayTags = (issue.tags && issue.tags.length > 0) 
-    ? issue.tags 
-    : ["typescript", "nodejs", "swarm-agent"];
+  const displayTags = (issue.tags && issue.tags.length > 0) ? issue.tags : [];
 
   return (
     <article className={`trouble-card ${isSolved ? "trouble-card--highlighted" : ""}`}>
@@ -170,13 +168,15 @@ const Issue: React.FC<IssueProps> = ({ hash, issue }) => {
           </div>
         )}
 
-        <div className="trouble-card__tags">
-          {displayTags.map((tag, idx) => (
-            <span key={idx} className="badge badge--tag">
-              #{tag}
-            </span>
-          ))}
-        </div>
+        {displayTags.length > 0 && (
+          <div className="trouble-card__tags">
+            {displayTags.map((tag, idx) => (
+              <span key={idx} className="badge badge--tag">
+                #{tag}
+              </span>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Trouble Card Footer */}
