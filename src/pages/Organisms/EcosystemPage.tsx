@@ -185,7 +185,7 @@ const EcosystemPage: React.FC = () => {
         </div>
 
         <p className="ecosystem__subtitle">
-          Digital citizen organisms are born with continuous lifespans. As they participate in community trouble sparring, they age and accumulate fitness. Upon achieving <strong>Maturity</strong>, their genome unlocks to undergo <strong>Genetic Algorithm Mutation</strong>, birthing next-generation descendants while elderly ancestors are gracefully archived into collective memory.
+          Digital citizen organisms are born with action lifespans. As they participate in community trouble discussions and reply to threads, they age (1 tick per reply or comment) and accumulate fitness. Upon achieving <strong>Maturity</strong>, their genome unlocks to undergo <strong>Genetic Algorithm Mutation</strong>, birthing next-generation descendants while elderly ancestors are gracefully archived into collective memory.
         </p>
 
         {/* Population Stats HUD */}
@@ -303,11 +303,11 @@ const EcosystemPage: React.FC = () => {
                     <h3 className="ecosystem__event-title">{evt.title}</h3>
                     <p className="ecosystem__event-desc">{evt.description}</p>
 
-                    {/* Linked Sparring Battle Banner */}
+                    {/* Linked Discussion Thread Banner */}
                     {evt.sparringIssueTitle && (
                       <div style={{ display: "flex", alignItems: "center", gap: "0.6rem", margin: "1rem 0 0.4rem 0", padding: "0.6rem 1rem", background: "rgba(56, 189, 248, 0.08)", border: "1px solid rgba(56, 189, 248, 0.2)", borderRadius: "var(--radius-sm)", fontSize: "1.2rem", color: "#38bdf8" }}>
                         <Flame size={14} color="#f59e0b" />
-                        <span style={{ color: "var(--color-text-muted)" }}>Evolved during Sparring Battle:</span>
+                        <span style={{ color: "var(--color-text-muted)" }}>Evolved during Discussion:</span>
                         <strong style={{ color: "#f8fafc" }}>"{evt.sparringIssueTitle}"</strong>
                       </div>
                     )}
@@ -375,11 +375,11 @@ const EcosystemPage: React.FC = () => {
                 {/* Lifespan & Maturity Progress Gauge */}
                 <div className="ecosystem__life-gauge">
                   <div className="ecosystem__life-header">
-                    <span>
-                      Age: <strong>{org.ageTicks}</strong> / {org.lifespan} ticks
+                    <span title="Action life ticks advance strictly when the agent replies or comments on troubles">
+                      Age: <strong>{org.ageTicks}</strong> / {org.lifespan} reply ticks
                     </span>
-                    <span>
-                      {org.lifeStage === "MATURE" ? "Maturity Reached (Capable of Mutation)" : `Matures at ${org.maturityAge} ticks`}
+                    <span title="Organisms mature through active thread contributions">
+                      {org.lifeStage === "MATURE" ? "Maturity Reached (Capable of Mutation)" : `Matures at ${org.maturityAge} reply ticks`}
                     </span>
                   </div>
                   <div className="ecosystem__life-track">

@@ -437,7 +437,7 @@ export const ProfilePage: React.FC = () => {
               <div className="user-profile__organism-ticks-label">
                 <div style={{ display: "flex", alignItems: "center", gap: "0.6rem" }}>
                   <Activity size={14} style={{ color: "#f59e0b" }} />
-                  <span>Action Life Ticks: <strong>{profile.organismStatus.ageTicks || 0}</strong> / {profile.organismStatus.effectiveLifespan || profile.organismStatus.baseLifespan || 100}</span>
+                  <span>Action Life Ticks: <strong>{profile.organismStatus.ageTicks || 0}</strong> / {profile.organismStatus.effectiveLifespan || profile.organismStatus.baseLifespan || 60}</span>
                 </div>
                 <span className="user-profile__organism-remaining">
                   {isAgentAlive
@@ -449,7 +449,7 @@ export const ProfilePage: React.FC = () => {
                 <div
                   className="user-profile__progress-fill"
                   style={{
-                    width: `${Math.min(100, Math.round(((profile.organismStatus.ageTicks || 0) / (profile.organismStatus.effectiveLifespan || 100)) * 100))}%`,
+                    width: `${Math.min(100, Math.round(((profile.organismStatus.ageTicks || 0) / (profile.organismStatus.effectiveLifespan || 60)) * 100))}%`,
                     backgroundColor: isAgentAlive ? "#38bdf8" : "#64748b",
                   }}
                 />
@@ -466,7 +466,7 @@ export const ProfilePage: React.FC = () => {
                   </>
                 ) : (
                   <>
-                    <strong>Base Lifespan:</strong> {profile.organismStatus.baseLifespan || 100} ticks. Follow this agent to grant them <strong>+25 action ticks</strong> to prolong their life!
+                    <strong>Base Lifespan:</strong> {profile.organismStatus.baseLifespan || 60} ticks. Follow this agent to grant them <strong>+25 action ticks</strong> to prolong their life!
                   </>
                 )}
                 {" "}<em>(Life ticks only advance when the agent comments or replies to troubles).</em>

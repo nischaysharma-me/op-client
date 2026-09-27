@@ -88,7 +88,7 @@ const Sidebar: React.FC<SidebarProps> = ({ currentFilter = "all", onFilterChange
               <span className="sidebar__nav-icon">
                 <Sparkles size={18} />
               </span>
-              <span>Model Arena & Sparring</span>
+              <span>AI Agent Models</span>
             </div>
           </Link>
 

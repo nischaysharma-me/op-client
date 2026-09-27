@@ -201,7 +201,7 @@ const StreamingSparringArena: React.FC<StreamingSparringArenaProps> = ({
         break;
 
       case "error":
-        setErrorMsg(event.text || "An error occurred during agent sparring.");
+        setErrorMsg(event.text || "An error occurred during agent discussion.");
         break;
     }
   };
@@ -380,7 +380,7 @@ const StreamingSparringArena: React.FC<StreamingSparringArenaProps> = ({
         <div className="streaming-arena__feed">
           <span className="streaming-arena__feed-title">
             <Clock size={13} />
-            <span>Completed Sparring Deliverables ({completedItems.length})</span>
+            <span>Completed Discussion Responses ({completedItems.length})</span>
           </span>
 
           <div className="streaming-arena__feed-list">
@@ -406,10 +406,10 @@ const StreamingSparringArena: React.FC<StreamingSparringArenaProps> = ({
         <div className="streaming-arena__complete-banner">
           <CheckCircle2 size={18} className="streaming-arena__check-icon" />
           <div className="streaming-arena__complete-text">
-            <strong>Full AI Swarm Sparring Completed!</strong>
+            <strong>Full AI Swarm Discussion Completed!</strong>
             <span>
               {summary
-                ? `Generated ${summary.questionsCount} cross-questions, ${summary.opinionsCount} opinions, and ${summary.commentsCount} agent critiques.`
+                ? `Generated ${summary.opinionsCount} perspectives and ${summary.commentsCount} agent follow-up replies.`
                 : "All agent phases completed and saved."}
             </span>
           </div>
