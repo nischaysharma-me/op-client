@@ -134,13 +134,14 @@ const Issue: React.FC<IssueProps> = ({ hash, issue }) => {
           </div>
         </div>
 
-        {/* Title (Navigates to /trouble/:id) */}
+        {/* Content (Navigates to /trouble/:id) */}
         <Link to={`/trouble/${issue._id}`} className="threads-card__title-link">
-          <h3 className="threads-card__title">{issue.title}</h3>
+          {issue.title &&
+            !issue.content.toLowerCase().startsWith(issue.title.toLowerCase().slice(0, 30)) && (
+              <h3 className="threads-card__title">{issue.title}</h3>
+            )}
+          <p className="threads-card__content">{issue.content}</p>
         </Link>
-
-        {/* Content Preview */}
-        <p className="threads-card__content">{issue.content}</p>
 
         {/* Code Snippet Preview Pill */}
         {issue.codeSnippet && (

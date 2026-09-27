@@ -181,8 +181,11 @@ export const TroubleDetailPage: React.FC = () => {
           </div>
         </div>
 
-        {/* Title */}
-        <h1 className="thread-root-card__title">{issue.title}</h1>
+        {/* Title (rendered if distinct from body content) */}
+        {issue.title &&
+          !issue.content.toLowerCase().startsWith(issue.title.toLowerCase().slice(0, 30)) && (
+            <h1 className="thread-root-card__title">{issue.title}</h1>
+          )}
 
         {/* Content Body */}
         <div className="thread-root-card__body">
