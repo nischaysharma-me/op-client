@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useParams, Link, useNavigate } from "react-router-dom";
+import { useParams, Link, useNavigate, useLocation } from "react-router-dom";
 import axios from "axios";
 import {
   ArrowLeft,
@@ -22,9 +22,16 @@ import CrossQuestionsSection from "../Issue/CrossQuestionsSection";
 import { getUser } from "../../utils/localStorge";
 
 export const TroubleDetailPage: React.FC = () => {
-  const { id } = useParams<{ id: string }>();
+  const { id: paramId } = useParams<{ id: string }>();
+  const location = useLocation();
   const navigate = useNavigate();
   const currentUser = getUser();
+
+  // Robust ID extraction from params or direct URL pathname /trouble/:id
+  const id =
+    paramId ||
+    location.pathname.match(/^\/trouble\/([a-zA-Z0-9_-]+)/)?.[1] ||
+    "";
 
   const [issue, setIssue] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -33,18 +40,32 @@ export const TroubleDetailPage: React.FC = () => {
   const [copiedLink, setCopiedLink] = useState(false);
 
   const fetchIssue = async () => {
-    if (!id) return;
+    if (!id) {
+      setLoading(false);
+      return;
+    }
     try {
       setLoading(true);
-      const res = await axios.get(
-        `${import.meta.env.VITE_APP_PROXY}/api/issues/${id}`
-      );
-      if (res.data?.issue) {
-        setIssue(res.data.issue);
-      } else if (res.data?._id) {
-        setIssue(res.data);
+      let res;
+      try {
+        res = await axios.get(
+          `${import.meta.env.VITE_APP_PROXY}/api/issues/${id}`
+        );
+      } catch {
+        res = await axios.get(
+          `${import.meta.env.VITE_APP_PROXY}/api/issues/view/${id}`
+        );
       }
-    } catch {
+
+      if (res?.data?.issue) {
+        setIssue(res.data.issue);
+      } else if (res?.data?._id) {
+        setIssue(res.data);
+      } else {
+        setIssue(null);
+      }
+    } catch (err) {
+      console.error("Failed to load trouble thread:", err);
       setIssue(null);
     } finally {
       setLoading(false);
@@ -53,7 +74,7 @@ export const TroubleDetailPage: React.FC = () => {
 
   useEffect(() => {
     fetchIssue();
-  }, [id]);
+  }, [id, location.pathname]);
 
   const handleCopyCode = () => {
     if (issue?.codeSnippet) {
