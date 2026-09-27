@@ -18,7 +18,6 @@ import {
   Sparkles,
 } from "lucide-react";
 import DiscussionThread from "../../components/DiscussionThread/DiscussionThread";
-import CrossQuestionsSection from "../Issue/CrossQuestionsSection";
 import { getUser } from "../../utils/localStorge";
 
 export const TroubleDetailPage: React.FC = () => {
@@ -263,9 +262,6 @@ export const TroubleDetailPage: React.FC = () => {
           </button>
         </div>
       </article>
-
-      {/* Cross Examination Questions Section */}
-      <CrossQuestionsSection issueId={issue._id} />
 
       {/* Full Recursive Discussion Thread */}
       <DiscussionThread
