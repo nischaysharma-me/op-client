@@ -14,9 +14,25 @@ export const getIssues = () => async (dispatch: AppDispatch) => {
 
 // Dispatchable action to add an issue, returning true/false for caller compatibility
 export const addIssue =
-  (title: string, content: string) => async (dispatch: AppDispatch): Promise<boolean> => {
+  (
+    titleOrPayload:
+      | string
+      | {
+          title?: string;
+          content: string;
+          codeSnippet?: string;
+          language?: string;
+          tags?: string[];
+        },
+    contentArg?: string
+  ) =>
+  async (dispatch: AppDispatch): Promise<boolean> => {
     try {
-      const resultAction = await dispatch(createIssue({ title, content }));
+      const payload =
+        typeof titleOrPayload === "string"
+          ? { title: titleOrPayload, content: contentArg || "" }
+          : titleOrPayload;
+      const resultAction = await dispatch(createIssue(payload));
       if (createIssue.fulfilled.match(resultAction)) {
         return true;
       }

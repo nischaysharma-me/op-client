@@ -4,15 +4,16 @@ import { useAppDispatch } from "../../store/hooks";
 import { addIssue } from "../../store/issues/actions";
 import { X, Sparkles, Code, Bot, Plus, Trash2 } from "lucide-react";
 import { TipTapEditor } from "../../components/TipTapEditor/TipTapEditor";
+import { CodeEditor } from "../../components/CodeEditor/CodeEditor";
 
 const IssueForm: React.FC = () => {
   const [isIssueCreated, setIssueCreated] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showCodeSnippet, setShowCodeSnippet] = useState(false);
+  const [codeLanguage, setCodeLanguage] = useState("typescript");
   const dispatch = useAppDispatch();
 
   const [form, setForm] = useState({
-    title: "",
     content: "",
     codeSnippet: "",
     tags: "",
@@ -39,25 +40,42 @@ const IssueForm: React.FC = () => {
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    if (!form.title.trim() || !form.content.trim()) {
-      showNotification("Please provide both a title and detailed context.");
+    const rawContent = form.content.trim();
+    if (!rawContent) {
+      showNotification("Please share your thoughts, question, or context in the editor.");
       return;
     }
 
     setIsSubmitting(true);
-    // Combine description and code snippet ONLY if user opted to provide one
-    const combinedContent =
-      showCodeSnippet && form.codeSnippet.trim()
-        ? `${form.content.trim()}\n\n\`\`\`\n${form.codeSnippet.trim()}\n\`\`\``
-        : form.content.trim();
 
-    const success = await dispatch(addIssue(form.title, combinedContent));
+    // Auto-derive title from first line of content
+    const cleanFirstLine = rawContent
+      .replace(/<[^>]*>/g, "")
+      .replace(/[#*`_~]/g, "")
+      .split("\n")[0]
+      .trim();
+    const autoTitle = cleanFirstLine.slice(0, 80) || "Trouble Discussion";
+
+    const tagsArray = form.tags
+      .split(",")
+      .map((t) => t.trim())
+      .filter(Boolean);
+
+    const success = await dispatch(
+      addIssue({
+        title: autoTitle,
+        content: rawContent,
+        codeSnippet: showCodeSnippet && form.codeSnippet.trim() ? form.codeSnippet.trim() : undefined,
+        language: showCodeSnippet && form.codeSnippet.trim() ? codeLanguage : undefined,
+        tags: tagsArray.length > 0 ? tagsArray : undefined,
+      })
+    );
     setIsSubmitting(false);
 
     if (success) {
       setIssueCreated(true);
     } else {
-      showNotification("Failed to submit trouble to the AI Swarm.");
+      showNotification("Failed to post trouble thread.");
     }
   };
 
@@ -67,16 +85,16 @@ const IssueForm: React.FC = () => {
 
   return (
     <div className="ui-modal-backdrop">
-      <div className="ui-modal">
+      <div className="ui-modal" style={{ maxWidth: "720px" }}>
         <div className="ui-modal__header">
           <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
             <div className="top-header__logo" style={{ width: "3.2rem", height: "3.2rem" }}>
               <Bot size={18} />
             </div>
             <div>
-              <h3 className="ui-modal__title">Post Topic / Ask AI Swarm</h3>
+              <h3 className="ui-modal__title">New Thread / Ask AI Swarm</h3>
               <p style={{ fontSize: "1.2rem", color: "var(--color-text-muted)" }}>
-                Start a general discussion, debate, or submit a technical trouble
+                Start a discussion, debate, or post code to troubleshoot
               </p>
             </div>
           </div>
@@ -95,37 +113,18 @@ const IssueForm: React.FC = () => {
               </div>
             )}
 
+            {/* Rich Text Editor - No separate title required */}
             <div className="form-group">
-              <label className="form-group__label">
-                <span>Title / Summary</span>
-                <span className="form-group__hint">Be concise and specific</span>
-              </label>
-              <input
-                type="text"
-                placeholder="e.g. What is the Ending of One Piece? or Memory leak in WebSocket server"
-                className="form-group__input"
-                name="title"
-                value={form.title}
-                onChange={handleChange}
-                required
-              />
-            </div>
-
-            <div className="form-group">
-              <label className="form-group__label">
-                <span>Detailed Context & Thoughts</span>
-                <span className="form-group__hint">Rich editor (bold, lists, headings)</span>
-              </label>
               <TipTapEditor
                 content={form.content}
-                placeholder="Share your thoughts, symptoms, perspective, or question..."
+                placeholder="What's happening? Ask a question, start a debate, or explain a bug..."
                 onChange={(_html, text) => {
                   setForm((prev) => ({ ...prev, content: text }));
                 }}
               />
             </div>
 
-            {/* Optional Collapsible Code Snippet */}
+            {/* Collapsible Monaco Code Editor */}
             {!showCodeSnippet ? (
               <div style={{ margin: "1.2rem 0" }}>
                 <button
@@ -133,23 +132,30 @@ const IssueForm: React.FC = () => {
                   className="btn btn--outline btn--sm"
                   onClick={() => setShowCodeSnippet(true)}
                   style={{ display: "inline-flex", alignItems: "center", gap: "0.6rem" }}
-                  title="Attach code snippet or logs if applicable"
+                  title="Attach code snippet with syntax highlighting"
                 >
                   <Plus size={14} />
                   <Code size={14} />
                   <span>Attach Code Snippet (Optional)</span>
                 </button>
                 <p style={{ fontSize: "1.1rem", color: "var(--color-text-muted)", marginTop: "0.4rem" }}>
-                  💡 Code snippets are completely optional. Non-technical questions or discussions do not need code.
+                  💡 Attach code if you need agents and users to inspect, debug, or optimize a snippet.
                 </p>
               </div>
             ) : (
-              <div className="form-group">
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.4rem" }}>
+              <div className="form-group" style={{ marginTop: "1.2rem" }}>
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    marginBottom: "0.4rem",
+                  }}
+                >
                   <label className="form-group__label" style={{ marginBottom: 0 }}>
                     <span style={{ display: "flex", alignItems: "center", gap: "0.6rem" }}>
                       <Code size={15} />
-                      <span>Code Snippet or Logs (Optional)</span>
+                      <span>Code Snippet Editor</span>
                     </span>
                   </label>
                   <button
@@ -166,25 +172,26 @@ const IssueForm: React.FC = () => {
                     Remove Code
                   </button>
                 </div>
-                <textarea
-                  placeholder="// Paste suspect handler, configuration, or logs here..."
-                  className="form-group__textarea form-group__textarea--code"
-                  rows={4}
-                  name="codeSnippet"
+
+                {/* Dedicated Monaco Code Editor */}
+                <CodeEditor
                   value={form.codeSnippet}
-                  onChange={handleChange}
+                  onChange={(val) => setForm((prev) => ({ ...prev, codeSnippet: val }))}
+                  language={codeLanguage}
+                  onLanguageChange={setCodeLanguage}
+                  height="220px"
                 />
               </div>
             )}
 
-            <div className="form-group">
+            <div className="form-group" style={{ marginTop: "1.4rem" }}>
               <label className="form-group__label">
                 <span>Tags / Topics (Optional)</span>
                 <span className="form-group__hint">Comma separated</span>
               </label>
               <input
                 type="text"
-                placeholder="e.g. anime, one-piece, philosophy or typescript, nodejs"
+                placeholder="e.g. anime, philosophy or typescript, performance"
                 className="form-group__input"
                 name="tags"
                 value={form.tags}
@@ -202,11 +209,11 @@ const IssueForm: React.FC = () => {
             <button
               type="submit"
               className="btn btn--primary"
-              disabled={isSubmitting || !form.title.trim() || !form.content.trim()}
+              disabled={isSubmitting || !form.content.trim()}
             >
               <Sparkles size={16} className="btn__icon" />
               <span className="btn__text">
-                {isSubmitting ? "Dispatching..." : "Launch Swarm Cross-Exam"}
+                {isSubmitting ? "Posting..." : "Post Thread"}
               </span>
             </button>
           </div>

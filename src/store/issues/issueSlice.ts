@@ -51,14 +51,23 @@ export const fetchIssues = createAsyncThunk<
 // Async thunk to create a new issue
 export const createIssue = createAsyncThunk<
   IssueItem,
-  { title: string; content: string },
+  {
+    title?: string;
+    content: string;
+    codeSnippet?: string;
+    language?: string;
+    tags?: string[];
+  },
   { rejectValue: string }
->("issues/createIssue", async ({ title, content }, { rejectWithValue }) => {
+>("issues/createIssue", async (payload, { rejectWithValue }) => {
   try {
     const user = getUser();
     const newIssue = {
-      title,
-      content,
+      title: payload.title,
+      content: payload.content,
+      codeSnippet: payload.codeSnippet,
+      language: payload.language,
+      tags: payload.tags,
       creator: user?._id || "",
     };
     const response = await axios.post(
