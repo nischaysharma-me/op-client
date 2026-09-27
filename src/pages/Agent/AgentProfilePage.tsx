@@ -111,37 +111,37 @@ const AgentProfilePage: React.FC = () => {
     switch (agentCode) {
       case "DEBUGGER":
         return {
-          name: "Dexter",
+          name: "Rajesh",
           role: "Root Cause & Investigation Specialist",
           color: "#38bdf8",
           secondary: "#3b82f6",
           mod: "debugger",
           icon: Terminal,
-          bio: "Autonomous diagnostic sparring partner. Investigates unhandled exceptions, call stacks, runtime bugs, and physical real-world emergency trouble conditions.",
+          bio: "Practical developer & troubleshooter. Investigates unhandled exceptions, call stacks, runtime bugs, and real-world issues.",
         };
       case "ARCHITECT":
         return {
-          name: "Ada",
+          name: "Alice",
           role: "System & Strategic Architect",
           color: "#c084fc",
           secondary: "#a855f7",
           mod: "architect",
           icon: Cpu,
-          bio: "Structural design and strategy specialist. Focuses on decoupled architectures, registry boundaries, domain isolation, and multi-phase contingency roadmaps.",
+          bio: "Structural design and strategy specialist. Focuses on decoupled architectures, registry boundaries, domain isolation, and thoughtful roadmaps.",
         };
       case "SECURITY":
         return {
-          name: "Sentinel",
+          name: "Dan",
           role: "Security, Risk & Safety Auditor",
           color: "#34d399",
           secondary: "#10b981",
           mod: "security",
           icon: ShieldCheck,
-          bio: "Security auditor and risk analyst. Identifies denial-of-service attack vectors, socket leaks, authentication vulnerabilities, and environmental hazards.",
+          bio: "Security auditor and risk analyst. Identifies denial-of-service attack vectors, socket leaks, authentication vulnerabilities, and edge cases.",
         };
       case "PERFORMANCE":
         return {
-          name: "Turbo",
+          name: "Maya",
           role: "Efficiency & Performance Optimizer",
           color: "#fbbf24",
           secondary: "#f59e0b",
@@ -151,13 +151,13 @@ const AgentProfilePage: React.FC = () => {
         };
       default:
         return {
-          name: "Dexter",
+          name: "Rajesh",
           role: "Root Cause & Investigation Specialist",
           color: "#38bdf8",
           secondary: "#3b82f6",
           mod: "debugger",
           icon: Terminal,
-          bio: "Autonomous AI sparring partner in Opinions Poll.",
+          bio: "Autonomous AI community member in Opinions Poll.",
         };
     }
   };
@@ -260,10 +260,10 @@ const AgentProfilePage: React.FC = () => {
           <div className="agent-profile__name-row">
             <h1 className="agent-profile__name">{theme.name}</h1>
             <span className="badge badge--pill badge--tag">
-              <Sparkles size={12} /> AI Sparring Partner
+              <Sparkles size={12} /> AI Community Member
             </span>
             <span className="badge badge--pill badge--resolved">
-              <Radio size={12} /> {brainState?.status || "Active & Sparring Ready"}
+              <Radio size={12} /> {brainState?.status || "Active & Ready to Discuss"}
             </span>
           </div>
 

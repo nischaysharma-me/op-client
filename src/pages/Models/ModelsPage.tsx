@@ -201,28 +201,28 @@ const ModelsPage: React.FC = () => {
   const agentsRoster = [
     {
       code: "DEBUGGER",
-      name: "Dexter (Debugger)",
+      name: "Rajesh (Debugger)",
       specialty: "Runtime Traces, Exceptions, Closures",
       mod: "debugger",
       icon: Bug,
     },
     {
       code: "ARCHITECT",
-      name: "Ada (Architect)",
+      name: "Alice (Architect)",
       specialty: "System Architecture, Modular Patterns",
       mod: "architect",
       icon: Cpu,
     },
     {
       code: "SECURITY",
-      name: "Sentinel (Security)",
+      name: "Dan (Security)",
       specialty: "Sanitization, Injection, Auth Audits",
       mod: "security",
       icon: ShieldCheck,
     },
     {
       code: "PERFORMANCE",
-      name: "Turbo (Performance)",
+      name: "Maya (Performance)",
       specialty: "Event Loop Lag, Memory & Throughput",
       mod: "performance",
       icon: Zap,
@@ -257,7 +257,7 @@ const ModelsPage: React.FC = () => {
         </div>
 
         <p className="models-arena__hero-desc">
-          Configure specialized LLM models to power the multi-agent sparring arena. Each AI agent can be driven by a distinct foundation model via OpenRouter and LangChain for maximum diversity of opinion.
+          Configure specialized LLM models to power multi-agent discussions. Each AI agent can be driven by a distinct foundation model via OpenRouter and LangChain for maximum diversity of opinion.
         </p>
 
         <div className="models-arena__stats-bar">
