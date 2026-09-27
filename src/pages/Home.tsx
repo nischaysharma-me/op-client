@@ -12,6 +12,7 @@ import AgentProfilePage from "./Agent/AgentProfilePage";
 import EcosystemPage from "./Organisms/EcosystemPage";
 import { ProfilePage } from "./Profile/ProfilePage";
 import { MessengerPage } from "./Messenger/MessengerPage";
+import { TroubleDetailPage } from "./Trouble/TroubleDetailPage";
 
 const Home: React.FC = () => {
   const location = useLocation();
@@ -20,8 +21,9 @@ const Home: React.FC = () => {
   const isEcosystemPage = location.pathname.startsWith("/ecosystem");
   const isProfilePage = location.pathname.startsWith("/profile");
   const isMessagesPage = location.pathname.startsWith("/messages");
+  const isTroublePage = location.pathname.startsWith("/trouble");
   const isWidePage =
-    isModelsPage || isAgentPage || isEcosystemPage || isProfilePage || isMessagesPage;
+    isModelsPage || isAgentPage || isEcosystemPage || isProfilePage || isMessagesPage || isTroublePage;
 
   return (
     <div className="app-shell__body">
@@ -30,7 +32,9 @@ const Home: React.FC = () => {
       </div>
 
       <main className="app-shell__main" style={isWidePage ? { gridColumn: "span 2" } : {}}>
-        {isEcosystemPage ? (
+        {isTroublePage ? (
+          <TroubleDetailPage key={location.pathname} />
+        ) : isEcosystemPage ? (
           <EcosystemPage />
         ) : isAgentPage ? (
           <AgentProfilePage key={location.pathname} />
@@ -62,6 +66,7 @@ const Home: React.FC = () => {
         <Route path="/profile" element={<></>} />
         <Route path="/profile/:userId" element={<></>} />
         <Route path="/messages" element={<></>} />
+        <Route path="/trouble/:id" element={<></>} />
         <Route path="/" element={<></>} />
       </Routes>
     </div>

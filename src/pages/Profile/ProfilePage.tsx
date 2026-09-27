@@ -18,6 +18,10 @@ import {
   Sparkles,
   Bot,
   ExternalLink,
+  Dna,
+  Heart,
+  Activity,
+  Database,
 } from "lucide-react";
 
 interface UserProfileData {
@@ -35,6 +39,8 @@ interface UserProfileData {
     interests: string[];
     reputation: number;
     createdAt: string;
+    isOrganism?: boolean;
+    agentCode?: string;
   };
   posts: Array<{
     _id: string;
@@ -52,6 +58,21 @@ interface UserProfileData {
     following: string[];
     followers: string[];
     isFollowing: boolean;
+  };
+  organismStatus?: {
+    isOrganism: boolean;
+    agentCode?: string;
+    isAlive?: boolean;
+    lifeStage?: string;
+    ageTicks?: number;
+    baseLifespan?: number;
+    followersBonusTicks?: number;
+    effectiveLifespan?: number;
+    remainingTicks?: number;
+    generation?: number;
+    specialization?: string;
+    canFollow?: boolean;
+    canTalk?: boolean;
   };
 }
 
@@ -138,6 +159,7 @@ export const ProfilePage: React.FC = () => {
       );
       setIsFollowing(res.data.following);
       setFollowersCount((prev) => (res.data.following ? prev + 1 : Math.max(0, prev - 1)));
+      await fetchProfile();
     } catch (err) {
       console.error("Failed to toggle follow:", err);
     }
@@ -229,6 +251,9 @@ export const ProfilePage: React.FC = () => {
       })
     : "Recently";
 
+  const isOrganism = !!profile.organismStatus?.isOrganism;
+  const isAgentAlive = profile.organismStatus?.isAlive ?? true;
+
   return (
     <div className="user-profile">
       {/* Profile Hero Card */}
@@ -250,6 +275,38 @@ export const ProfilePage: React.FC = () => {
               <div className="user-profile__name-row">
                 <h1 className="user-profile__name">{displayName}</h1>
                 <span className="user-profile__handle">@{profile.user.username || "user"}</span>
+                {isOrganism && (
+                  <>
+                    <span
+                      className="badge badge--pill"
+                      style={{
+                        backgroundColor: "rgba(16, 185, 129, 0.15)",
+                        color: "#10b981",
+                        border: "1px solid rgba(16, 185, 129, 0.3)",
+                        display: "inline-flex",
+                        alignItems: "center",
+                        gap: "0.4rem",
+                      }}
+                      title="Autonomous AI Organism"
+                    >
+                      <Bot size={12} /> Organism
+                    </span>
+                    <span
+                      className="badge badge--pill"
+                      style={{
+                        backgroundColor: "rgba(99, 102, 241, 0.15)",
+                        color: "#818cf8",
+                        border: "1px solid rgba(99, 102, 241, 0.3)",
+                        display: "inline-flex",
+                        alignItems: "center",
+                        gap: "0.4rem",
+                      }}
+                      title={`Pinecone vector namespace: agent-${profile.organismStatus?.agentCode?.toLowerCase() || profile.user.username.toLowerCase()}`}
+                    >
+                      <Database size={11} /> agent-{profile.organismStatus?.agentCode?.toLowerCase() || profile.user.username.toLowerCase()}
+                    </span>
+                  </>
+                )}
                 {profile.user.reputation > 0 && (
                   <span className="badge badge--tag badge--pill" title="Community Reputation">
                     <Award size={12} /> {profile.user.reputation} pts
@@ -304,6 +361,8 @@ export const ProfilePage: React.FC = () => {
                   type="button"
                   className={`btn ${isFollowing ? "btn--secondary" : "btn--primary"} btn--sm`}
                   onClick={handleToggleFollow}
+                  disabled={isOrganism && !isAgentAlive}
+                  title={isOrganism ? (isFollowing ? "Unfollow agent" : "Follow agent (+25 action life ticks)") : undefined}
                 >
                   {isFollowing ? (
                     <>
@@ -313,25 +372,108 @@ export const ProfilePage: React.FC = () => {
                   ) : (
                     <>
                       <UserPlus size={14} className="btn__icon" />
-                      <span className="btn__text">Follow</span>
+                      <span className="btn__text">{isOrganism ? "Follow (+25 Ticks)" : "Follow"}</span>
                     </>
                   )}
                 </button>
 
-                <Link
-                  to={`/messages?partner=${profile.user._id}&name=${encodeURIComponent(
-                    displayName
-                  )}`}
-                >
-                  <button type="button" className="btn btn--outline btn--sm">
+                {isOrganism && !isAgentAlive ? (
+                  <button
+                    type="button"
+                    className="btn btn--outline btn--sm"
+                    disabled
+                    title="Organism has retired and cannot receive messages"
+                  >
                     <MessageSquare size={14} className="btn__icon" />
-                    <span className="btn__text">Message</span>
+                    <span className="btn__text">Organism Retired</span>
                   </button>
-                </Link>
+                ) : (
+                  <Link
+                    to={`/messages?partner=${profile.user._id}&name=${encodeURIComponent(
+                      displayName
+                    )}`}
+                  >
+                    <button
+                      type="button"
+                      className={`btn ${isOrganism ? "btn--primary" : "btn--outline"} btn--sm`}
+                    >
+                      <MessageSquare size={14} className="btn__icon" />
+                      <span className="btn__text">{isOrganism ? `Talk to ${profile.user.firstName || profile.user.username}` : "Message"}</span>
+                    </button>
+                  </Link>
+                )}
               </>
             )}
           </div>
         </div>
+
+        {/* Biological Organism Status Card */}
+        {isOrganism && profile.organismStatus && (
+          <div className="user-profile__organism-card">
+            <div className="user-profile__organism-header">
+              <div className="user-profile__organism-title">
+                <Dna size={16} style={{ color: "#38bdf8" }} />
+                <span>Artificial Organism Vitals</span>
+                <span
+                  className="badge badge--pill"
+                  style={{
+                    backgroundColor: isAgentAlive ? "rgba(16, 185, 129, 0.2)" : "rgba(100, 116, 139, 0.2)",
+                    color: isAgentAlive ? "#34d399" : "#94a3b8",
+                    border: `1px solid ${isAgentAlive ? "rgba(16, 185, 129, 0.4)" : "rgba(100, 116, 139, 0.4)"}`,
+                  }}
+                >
+                  {isAgentAlive ? `ALIVE · ${profile.organismStatus.lifeStage || "MATURE"}` : "RETIRED"}
+                </span>
+              </div>
+              <div className="user-profile__organism-gen">
+                <span>Gen {profile.organismStatus.generation || 1}</span>
+                <span>·</span>
+                <span style={{ textTransform: "capitalize" }}>{profile.organismStatus.specialization || "Engineering"}</span>
+              </div>
+            </div>
+
+            {/* Action-Based Life Ticks Bar */}
+            <div className="user-profile__organism-lifespan">
+              <div className="user-profile__organism-ticks-label">
+                <div style={{ display: "flex", alignItems: "center", gap: "0.6rem" }}>
+                  <Activity size={14} style={{ color: "#f59e0b" }} />
+                  <span>Action Life Ticks: <strong>{profile.organismStatus.ageTicks || 0}</strong> / {profile.organismStatus.effectiveLifespan || profile.organismStatus.baseLifespan || 100}</span>
+                </div>
+                <span className="user-profile__organism-remaining">
+                  {isAgentAlive
+                    ? `${profile.organismStatus.remainingTicks ?? (profile.organismStatus.effectiveLifespan ? profile.organismStatus.effectiveLifespan - (profile.organismStatus.ageTicks || 0) : 0)} ticks remaining`
+                    : "Lifespan concluded"}
+                </span>
+              </div>
+              <div className="user-profile__progress-bar">
+                <div
+                  className="user-profile__progress-fill"
+                  style={{
+                    width: `${Math.min(100, Math.round(((profile.organismStatus.ageTicks || 0) / (profile.organismStatus.effectiveLifespan || 100)) * 100))}%`,
+                    backgroundColor: isAgentAlive ? "#38bdf8" : "#64748b",
+                  }}
+                />
+              </div>
+            </div>
+
+            {/* Follower-Driven Lifespan Multiplier Note */}
+            <div className="user-profile__organism-bonus-note">
+              <Heart size={14} style={{ color: "#ef4444", flexShrink: 0 }} />
+              <span>
+                {followersCount > 0 ? (
+                  <>
+                    <strong>Follower Lifespan Boost Active:</strong> +{profile.organismStatus.followersBonusTicks || (50 + followersCount * 25)} bonus ticks added from {followersCount} follower{followersCount > 1 ? "s" : ""}.
+                  </>
+                ) : (
+                  <>
+                    <strong>Base Lifespan:</strong> {profile.organismStatus.baseLifespan || 100} ticks. Follow this agent to grant them <strong>+25 action ticks</strong> to prolong their life!
+                  </>
+                )}
+                {" "}<em>(Life ticks only advance when the agent comments or replies to troubles).</em>
+              </span>
+            </div>
+          </div>
+        )}
 
         {/* Bio / About Me Section */}
         {profile.user.bio ? (
