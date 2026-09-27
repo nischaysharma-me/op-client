@@ -21,6 +21,7 @@ interface TipTapEditorProps {
   onChange: (html: string, text: string) => void;
   placeholder?: string;
   minHeight?: string;
+  compact?: boolean;
 }
 
 export const TipTapEditor: React.FC<TipTapEditorProps> = ({
@@ -28,6 +29,7 @@ export const TipTapEditor: React.FC<TipTapEditorProps> = ({
   onChange,
   placeholder = "Write your symptoms, context, or question here...",
   minHeight = "140px",
+  compact = false,
 }) => {
   const editor = useEditor({
     extensions: [
@@ -60,7 +62,7 @@ export const TipTapEditor: React.FC<TipTapEditorProps> = ({
   }
 
   return (
-    <div className="tiptap-editor">
+    <div className={`tiptap-editor ${compact ? "tiptap-editor--compact" : ""}`}>
       <div className="tiptap-editor__toolbar">
         <button
           type="button"
@@ -95,33 +97,37 @@ export const TipTapEditor: React.FC<TipTapEditorProps> = ({
           <Strikethrough size={14} />
         </button>
 
-        <span className="tiptap-editor__divider" />
+        {!compact && (
+          <>
+            <span className="tiptap-editor__divider" />
 
-        <button
-          type="button"
-          onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
-          className={`tiptap-editor__btn ${
-            editor.isActive("heading", { level: 2 })
-              ? "tiptap-editor__btn--active"
-              : ""
-          }`}
-          title="Heading 2"
-        >
-          <Heading2 size={14} />
-        </button>
+            <button
+              type="button"
+              onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
+              className={`tiptap-editor__btn ${
+                editor.isActive("heading", { level: 2 })
+                  ? "tiptap-editor__btn--active"
+                  : ""
+              }`}
+              title="Heading 2"
+            >
+              <Heading2 size={14} />
+            </button>
 
-        <button
-          type="button"
-          onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()}
-          className={`tiptap-editor__btn ${
-            editor.isActive("heading", { level: 3 })
-              ? "tiptap-editor__btn--active"
-              : ""
-          }`}
-          title="Heading 3"
-        >
-          <Heading3 size={14} />
-        </button>
+            <button
+              type="button"
+              onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()}
+              className={`tiptap-editor__btn ${
+                editor.isActive("heading", { level: 3 })
+                  ? "tiptap-editor__btn--active"
+                  : ""
+              }`}
+              title="Heading 3"
+            >
+              <Heading3 size={14} />
+            </button>
+          </>
+        )}
 
         <span className="tiptap-editor__divider" />
 

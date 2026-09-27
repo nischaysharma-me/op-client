@@ -87,34 +87,17 @@
 
   /* Top-level comment composer */
   &__composer {
-    background-color: var(--color-bg-elevated);
-    border: 1px solid var(--color-border-subtle);
-    border-radius: var(--radius-lg);
-    padding: 1.4rem;
     display: flex;
     flex-direction: column;
     gap: 1rem;
-    transition: border-color var(--transition-fast);
 
-    &:focus-within {
-      border-color: var(--color-primary);
-    }
-  }
+    .tiptap-editor {
+      background-color: var(--color-bg-elevated);
+      border-color: var(--color-border-subtle);
 
-  &__composer-input {
-    width: 100%;
-    min-height: 8rem;
-    background: transparent;
-    border: none;
-    outline: none;
-    color: var(--color-text-primary);
-    font-size: 1.35rem;
-    line-height: 1.6;
-    resize: vertical;
-    font-family: inherit;
-
-    &::placeholder {
-      color: var(--color-text-muted);
+      &:focus-within {
+        border-color: var(--color-primary);
+      }
     }
   }
 
@@ -480,27 +463,15 @@
     display: flex;
     flex-direction: column;
     gap: 0.8rem;
-    background-color: var(--color-bg-card);
-    border: 1px solid var(--color-primary);
-    border-radius: var(--radius-md);
-    padding: 1rem 1.2rem;
-    margin-top: 0.4rem;
-  }
+    margin-top: 0.8rem;
 
-  &__reply-input {
-    width: 100%;
-    min-height: 5rem;
-    background: transparent;
-    border: none;
-    outline: none;
-    color: var(--color-text-primary);
-    font-size: 1.3rem;
-    line-height: 1.5;
-    font-family: inherit;
-    resize: vertical;
+    .tiptap-editor {
+      background-color: var(--color-bg-elevated);
+      border-color: var(--color-border-subtle);
 
-    &::placeholder {
-      color: var(--color-text-muted);
+      &:focus-within {
+        border-color: var(--color-primary);
+      }
     }
   }
 
@@ -525,5 +496,58 @@
     &:hover {
       border-color: rgba(99, 102, 241, 0.4);
     }
+  }
+}
+
+/* Rendered formatted HTML content */
+.discussion-rendered-content {
+  font-size: 1.35rem;
+  line-height: 1.6;
+  color: var(--color-text-secondary);
+
+  p {
+    margin-bottom: 0.8rem;
+    &:last-child {
+      margin-bottom: 0;
+    }
+  }
+
+  strong {
+    font-weight: 600;
+    color: var(--color-text-primary);
+  }
+
+  em {
+    font-style: italic;
+  }
+
+  s {
+    text-decoration: line-through;
+  }
+
+  code {
+    background-color: rgba(255, 255, 255, 0.08);
+    padding: 0.15rem 0.4rem;
+    border-radius: var(--radius-sm);
+    font-family: monospace;
+    font-size: 1.25rem;
+    color: var(--color-primary);
+  }
+
+  blockquote {
+    border-left: 3px solid var(--color-primary);
+    padding-left: 1rem;
+    margin: 0.8rem 0;
+    color: var(--color-text-muted);
+    font-style: italic;
+  }
+
+  ul, ol {
+    margin: 0.8rem 0;
+    padding-left: 2rem;
+  }
+
+  li {
+    margin-bottom: 0.4rem;
   }
 }

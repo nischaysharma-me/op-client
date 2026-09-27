@@ -16,6 +16,28 @@ import {
   X
 } from "lucide-react";
 import { getUser } from "../../utils/localStorge";
+import { TipTapEditor } from "../TipTapEditor/TipTapEditor";
+
+const hasContent = (val: string): boolean => {
+  if (!val) return false;
+  const stripped = val.replace(/<[^>]*>/g, "").trim();
+  return stripped.length > 0;
+};
+
+const isHtmlContent = (text: string): boolean => /<\/?[a-z][\s\S]*>/i.test(text);
+
+const renderFormattedBody = (content: string, className?: string) => {
+  if (!content) return null;
+  if (isHtmlContent(content)) {
+    return (
+      <div
+        className={`discussion-rendered-content ${className || ""}`}
+        dangerouslySetInnerHTML={{ __html: content }}
+      />
+    );
+  }
+  return <p className={className}>{content}</p>;
+};
 
 interface Author {
   _id?: string;
@@ -222,7 +244,7 @@ const ThreadCommentItem: React.FC<ThreadCommentItemProps> = ({
         </div>
 
         {/* Body */}
-        <p className="thread-node__body">{node.content}</p>
+        {renderFormattedBody(node.content, "thread-node__body")}
 
         {/* Footer Actions */}
         <div className="thread-node__footer">
@@ -258,18 +280,12 @@ const ThreadCommentItem: React.FC<ThreadCommentItemProps> = ({
         {/* Inline Reply Composer for this specific comment */}
         {isReplyingToThis && currentUser?._id && (
           <div className="thread-node__reply-box">
-            <textarea
-              className="thread-node__reply-input"
+            <TipTapEditor
+              content={replyText}
+              onChange={(html) => setReplyText(html)}
               placeholder={`Reply to ${author.name}...`}
-              value={replyText}
-              onChange={(e) => setReplyText(e.target.value)}
-              autoFocus
-              onKeyDown={(e) => {
-                if (e.key === "Enter" && !e.shiftKey && replyText.trim()) {
-                  e.preventDefault();
-                  onSendReply(opinionId, node._id);
-                }
-              }}
+              minHeight="70px"
+              compact={true}
             />
             <div className="thread-node__reply-actions">
               <button
@@ -287,7 +303,7 @@ const ThreadCommentItem: React.FC<ThreadCommentItemProps> = ({
                 type="button"
                 className="btn btn--primary btn--sm"
                 onClick={() => onSendReply(opinionId, node._id)}
-                disabled={!replyText.trim()}
+                disabled={!hasContent(replyText)}
               >
                 <Send size={12} />
                 <span>Send Reply</span>
@@ -472,7 +488,7 @@ const DiscussionThread: React.FC<DiscussionThreadProps> = ({
   // Submit top-level comment (opinion)
   const handleSubmitComment = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newCommentText.trim() || !currentUser?._id) return;
+    if (!hasContent(newCommentText) || !currentUser?._id) return;
 
     setIsSubmitting(true);
     try {
@@ -515,7 +531,7 @@ const DiscussionThread: React.FC<DiscussionThreadProps> = ({
 
   // Submit nested reply to ANY comment or reply in the thread tree
   const handleSendReply = async (opinionId: string, parentCommentId: string | null) => {
-    if (!replyText.trim() || !currentUser?._id) return;
+    if (!hasContent(replyText) || !currentUser?._id) return;
 
     try {
       const payload = {
@@ -616,17 +632,18 @@ const DiscussionThread: React.FC<DiscussionThreadProps> = ({
       {/* Top-Level User Comment Composer */}
       {currentUser?._id ? (
         <form className="discussion-thread__composer" onSubmit={handleSubmitComment}>
-          <textarea
-            className="discussion-thread__composer-input"
+          <TipTapEditor
+            content={newCommentText}
+            onChange={(html) => setNewCommentText(html)}
             placeholder="Share your perspective, code fix, or follow-up question in the thread..."
-            value={newCommentText}
-            onChange={(e) => setNewCommentText(e.target.value)}
+            minHeight="90px"
+            compact={true}
           />
           <div className="discussion-thread__composer-footer">
             <button
               type="submit"
               className="btn btn--primary btn--sm"
-              disabled={isSubmitting || !newCommentText.trim()}
+              disabled={isSubmitting || !hasContent(newCommentText)}
             >
               <Send size={13} />
               <span>Post Comment</span>
@@ -699,7 +716,7 @@ const DiscussionThread: React.FC<DiscussionThreadProps> = ({
 
               {/* Body */}
               <div className="discussion-card__body">
-                <p>{op.content}</p>
+                {renderFormattedBody(op.content)}
 
                 {op.codeBlock && (
                   <div className="discussion-card__code-container">
@@ -785,18 +802,12 @@ const DiscussionThread: React.FC<DiscussionThreadProps> = ({
               {/* Inline reply composer under root opinion */}
               {isReplyingToOpinion && currentUser?._id && (
                 <div className="thread-node__reply-box" style={{ marginTop: "1rem" }}>
-                  <textarea
-                    className="thread-node__reply-input"
+                  <TipTapEditor
+                    content={replyText}
+                    onChange={(html) => setReplyText(html)}
                     placeholder={`Reply to ${author.name}...`}
-                    value={replyText}
-                    onChange={(e) => setReplyText(e.target.value)}
-                    autoFocus
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter" && !e.shiftKey && replyText.trim()) {
-                        e.preventDefault();
-                        handleSendReply(op._id, null);
-                      }
-                    }}
+                    minHeight="70px"
+                    compact={true}
                   />
                   <div className="thread-node__reply-actions">
                     <button
@@ -814,7 +825,7 @@ const DiscussionThread: React.FC<DiscussionThreadProps> = ({
                       type="button"
                       className="btn btn--primary btn--sm"
                       onClick={() => handleSendReply(op._id, null)}
-                      disabled={!replyText.trim()}
+                      disabled={!hasContent(replyText)}
                     >
                       <Send size={12} />
                       <span>Send Reply</span>
