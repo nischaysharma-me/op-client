@@ -1,22 +1,28 @@
 @use '../abstracts' as *;
 
 .monaco-code-editor {
-  border: 1px solid var(--color-border);
-  border-radius: var(--border-radius-md);
+  border: 1.5px solid #334155;
+  border-radius: var(--border-radius-md, 0.8rem);
   background-color: #1e1e1e;
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
+  box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.5), 0 4px 16px rgba(0, 0, 0, 0.35);
   margin-top: 0.8rem;
+  transition: all var(--transition-fast, 0.2s ease);
+
+  &:focus-within {
+    border-color: #38bdf8;
+    box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.5), 0 0 0 2px rgba(56, 189, 248, 0.3);
+  }
 
   &__toolbar {
     display: flex;
     align-items: center;
     justify-content: space-between;
     padding: 0.8rem 1.4rem;
-    background: rgba(15, 23, 42, 0.85);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    background: #151f35;
+    border-bottom: 1.5px solid #283754;
   }
 
   &__left {

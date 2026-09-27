@@ -1,31 +1,35 @@
 .tiptap-editor {
-  border: 1px solid var(--color-border);
-  border-radius: var(--border-radius-md);
-  background-color: var(--color-surface);
+  border: 1.5px solid #334155;
+  border-radius: var(--border-radius-md, 0.8rem);
+  background-color: #080d1a;
+  box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.5), 0 2px 8px rgba(0, 0, 0, 0.25);
   overflow: hidden;
-  transition: border-color var(--transition-fast);
+  transition: all var(--transition-fast);
 
   &:focus-within {
-    border-color: var(--color-primary);
-    box-shadow: 0 0 0 1px var(--color-primary);
+    border-color: #38bdf8;
+    box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.5), 0 0 0 2px rgba(56, 189, 248, 0.3);
   }
 
   &--compact {
     border-radius: var(--radius-md);
 
     .tiptap-editor__toolbar {
-      padding: 0.3rem 0.6rem;
-      gap: 0.2rem;
+      padding: 0.4rem 0.8rem;
+      gap: 0.3rem;
+      background-color: #151f35;
+      border-bottom: 1px solid #283754;
     }
 
     .tiptap-editor__btn {
-      width: 2.2rem;
-      height: 2.2rem;
+      width: 2.4rem;
+      height: 2.4rem;
     }
 
     .tiptap-editor__content {
-      padding: 0.6rem 0.8rem;
+      padding: 0.8rem 1rem;
       font-size: 1.3rem;
+      background-color: #080d1a;
     }
   }
 
@@ -33,10 +37,10 @@
     display: flex;
     align-items: center;
     flex-wrap: wrap;
-    gap: 0.3rem;
-    padding: 0.6rem 0.8rem;
-    background-color: var(--color-surface-hover);
-    border-bottom: 1px solid var(--color-border);
+    gap: 0.4rem;
+    padding: 0.7rem 1rem;
+    background-color: #151f35;
+    border-bottom: 1.5px solid #283754;
   }
 
   &__btn {
@@ -77,10 +81,11 @@
   }
 
   &__content {
-    padding: 1rem 1.2rem;
-    font-size: 1.35rem;
+    padding: 1.2rem 1.4rem;
+    font-size: 1.4rem;
     line-height: 1.6;
-    color: var(--color-text-primary);
+    color: #f8fafc;
+    background-color: #080d1a;
     cursor: text;
 
     .tiptap {
@@ -97,7 +102,7 @@
         &.is-editor-empty:first-child::before {
           content: attr(data-placeholder);
           float: left;
-          color: var(--color-text-muted);
+          color: #64748b;
           pointer-events: none;
           height: 0;
         }
