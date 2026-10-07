@@ -169,6 +169,113 @@ const RealAnatomicalBrainMesh: React.FC<{
   );
 };
 
+// 1.5 Internal Anatomical Brain Particle Matrix (Inside the GLB model)
+const InternalBrainParticleMesh: React.FC<{
+  accentColor: string;
+  secondaryColor: string;
+  pulseSpeed: number;
+}> = ({ accentColor, secondaryColor, pulseSpeed }) => {
+  const pointsRef = useRef<THREE.Points>(null!);
+  const count = 750;
+
+  // Particle data with origins, target points along gyri, and current interpolations
+  const particleState = useMemo(() => {
+    // Generate particle positions inside dual hemispheres conforming to brain contours
+    const basePositions = new Float32Array(count * 3);
+    const velocities = new Float32Array(count * 3);
+    const colors = new Float32Array(count * 3);
+    const colorA = new THREE.Color(accentColor);
+    const colorB = new THREE.Color(secondaryColor);
+    const colorWhite = new THREE.Color("#ffffff");
+
+    for (let i = 0; i < count; i++) {
+      const u = Math.random();
+      const v = Math.random();
+      const theta = u * Math.PI * 2;
+      const phi = Math.acos(2 * v - 1);
+      // Dual hemisphere bounds: X in [-1.0, 1.0], Y in [-0.6, 1.5], Z in [-1.4, 1.3]
+      const hemisphere = i % 2 === 0 ? 1 : -1;
+      const fissureGap = 0.14;
+      const rx = 0.2 + Math.random() * 0.7;
+      const ry = 0.2 + Math.random() * 0.9;
+      const rz = 0.2 + Math.random() * 1.1;
+
+      const px = (rx * Math.sin(phi) * Math.cos(theta) * 0.85 + hemisphere * fissureGap);
+      const py = 0.65 + ry * Math.sin(phi) * Math.sin(theta) * 0.75;
+      const pz = rz * Math.cos(phi) * 1.15;
+
+      basePositions[i * 3] = px;
+      basePositions[i * 3 + 1] = py;
+      basePositions[i * 3 + 2] = pz;
+
+      // Velocities along the neuro-axis (Frontal <-> Occipital, Left <-> Right trans-hemispheric)
+      velocities[i * 3] = (Math.random() - 0.5) * 0.015;
+      velocities[i * 3 + 1] = (Math.random() - 0.5) * 0.012;
+      velocities[i * 3 + 2] = (Math.random() - 0.5) * 0.022;
+
+      // Assign dynamic synaptic color
+      const mix = Math.random();
+      const c = mix > 0.8 ? colorWhite : (mix > 0.4 ? colorA : colorB);
+      colors[i * 3] = c.r;
+      colors[i * 3 + 1] = c.g;
+      colors[i * 3 + 2] = c.b;
+    }
+
+    return { basePositions, velocities, colors };
+  }, [accentColor, secondaryColor]);
+
+  // Current running positions buffer
+  const currentPositions = useMemo(() => new Float32Array(particleState.basePositions), [particleState]);
+
+  useFrame(() => {
+    if (!pointsRef.current) return;
+    const posAttr = pointsRef.current.geometry.attributes.position as THREE.BufferAttribute;
+    const posArray = posAttr.array as Float32Array;
+    const vels = particleState.velocities;
+    const bases = particleState.basePositions;
+
+    for (let i = 0; i < count; i++) {
+      const idx = i * 3;
+      // Propel particles along the neural streams
+      posArray[idx] += vels[idx] * pulseSpeed;
+      posArray[idx + 1] += vels[idx + 1] * pulseSpeed;
+      posArray[idx + 2] += vels[idx + 2] * pulseSpeed;
+
+      // Bounce / recycle within anatomical brain volume bounds
+      const dx = posArray[idx] - bases[idx];
+      const dy = posArray[idx + 1] - bases[idx + 1];
+      const dz = posArray[idx + 2] - bases[idx + 2];
+      const dist = Math.hypot(dx, dy, dz);
+
+      if (dist > 0.45) {
+        // Return to stream base
+        posArray[idx] = bases[idx];
+        posArray[idx + 1] = bases[idx + 1];
+        posArray[idx + 2] = bases[idx + 2];
+      }
+    }
+
+    posAttr.needsUpdate = true;
+  });
+
+  return (
+    <points ref={pointsRef}>
+      <bufferGeometry>
+        <bufferAttribute attach="attributes-position" args={[currentPositions, 3]} />
+        <bufferAttribute attach="attributes-color" args={[particleState.colors, 3]} />
+      </bufferGeometry>
+      <pointsMaterial
+        size={0.065}
+        vertexColors
+        transparent
+        opacity={0.85}
+        blending={THREE.AdditiveBlending}
+        depthWrite={false}
+      />
+    </points>
+  );
+};
+
 // Fallback Procedural Dual-Hemisphere Brain with Gyri & Longitudinal Fissure
 const ProceduralAnatomicalFallback: React.FC<{
   accentColor: string;
@@ -593,6 +700,13 @@ const BrainScene: React.FC<{
               />
             </Suspense>
           )}
+
+          {/* Internal Running Brain Particle Matrix (Running Across System) */}
+          <InternalBrainParticleMesh
+            accentColor={accentColor}
+            secondaryColor={secondaryColor}
+            pulseSpeed={pulseSpeed}
+          />
 
           {/* White Matter Nerve Pathways */}
           {showNerves && (
