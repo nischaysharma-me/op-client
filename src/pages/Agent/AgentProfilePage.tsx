@@ -28,11 +28,15 @@ import {
   Crosshair,
   MessageSquare,
   FileCode,
+  Network,
+  BarChart3,
 } from "lucide-react";
-import NeuralBrainCanvas, {
+import R3FNeuralBrain, {
   NeuronNodeData,
   NervePathwayData,
-} from "../../components/Brain3D/NeuralBrainCanvas";
+} from "../../components/Brain3D/R3FNeuralBrain";
+import BrainAnalyticsGraph from "../../components/Brain3D/BrainAnalyticsGraph";
+import NeuralBrainCanvas from "../../components/Brain3D/NeuralBrainCanvas";
 
 interface OrganismData {
   organismCode: string;
@@ -213,6 +217,7 @@ const AgentProfilePage: React.FC = () => {
   const [searching, setSearching] = useState(false);
   const [showPineconeGuide, setShowPineconeGuide] = useState(false);
   const [selectedVectorSample, setSelectedVectorSample] = useState<number[] | null>(null);
+  const [cognitiveView, setCognitiveView] = useState<"3d" | "analytics">("3d");
 
   const archetypeConfig = DEFAULT_ARCHETYPES[agentCode] || DEFAULT_ARCHETYPES.DEBUGGER;
   const IconComponent = archetypeConfig.icon;
@@ -522,72 +527,118 @@ PINECONE_INDEX="opinions-poll-agents"
             <Brain size={20} style={{ color: archetypeConfig.color }} />
             <div>
               <h2 className="agent-profile__stage-title">
-                Cognitive 3D Neural Architecture & Synaptic Nerves
+                {cognitiveView === "3d"
+                  ? "Cognitive 3D R3F Neural Engine & Synaptic Nerves"
+                  : "Neural Network Topology & Cognitive Analytics"}
               </h2>
               <span className="agent-profile__stage-sub">
-                Interactive anatomical somas, white matter axon nerve tracts & high-dimensional embedding clouds for {agentDisplayName}
+                {cognitiveView === "3d"
+                  ? `Interactive anatomical somas, white matter axon nerve tracts & high-dimensional embedding clouds for ${agentDisplayName}`
+                  : `Planar network graph topology, lobe memory distribution & activation potential telemetry for ${agentDisplayName}`}
               </span>
             </div>
           </div>
 
-          <div style={{ display: "flex", alignItems: "center", gap: "0.8rem" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "0.8rem", flexWrap: "wrap" }}>
+            {/* View Switcher Buttons */}
+            <div style={{ display: "flex", gap: "0.4rem", background: "rgba(15, 23, 42, 0.75)", padding: "0.3rem", borderRadius: "var(--radius-full)", border: "1px solid var(--color-border)" }}>
+              <button
+                type="button"
+                className={`btn btn--sm ${cognitiveView === "3d" ? "btn--primary" : "btn--ghost"}`}
+                onClick={() => setCognitiveView("3d")}
+                style={{ padding: "0.4rem 1rem", fontSize: "1.15rem", borderRadius: "var(--radius-full)" }}
+              >
+                <Brain size={13} />
+                <span>3D R3F View</span>
+              </button>
+
+              <button
+                type="button"
+                className={`btn btn--sm ${cognitiveView === "analytics" ? "btn--primary" : "btn--ghost"}`}
+                onClick={() => setCognitiveView("analytics")}
+                style={{ padding: "0.4rem 1rem", fontSize: "1.15rem", borderRadius: "var(--radius-full)" }}
+              >
+                <BarChart3 size={13} />
+                <span>Analytics & Graph</span>
+              </button>
+            </div>
+
             <span className="badge badge--pill badge--tag">
               <Activity size={12} /> {brainState?.metrics.nerveTractsCount || 6} Nerve Tracts
             </span>
             <span className="badge badge--pill badge--resolved">
-              <Database size={12} /> 1024-d Embedding Space
+              <Database size={12} /> 1024-d Space
             </span>
           </div>
         </div>
 
-        <div className="agent-profile__canvas-wrapper">
-          <NeuralBrainCanvas
+        {/* Conditional Stage Rendering: 3D R3F Neural Engine vs Analytics Graph */}
+        {cognitiveView === "3d" ? (
+          <div className="agent-profile__canvas-wrapper">
+            <R3FNeuralBrain
+              agentCode={agentCode}
+              accentColor={archetypeConfig.color}
+              secondaryColor={archetypeConfig.secondary}
+              topology={brainState?.topology}
+              nervePathways={brainState?.nervePathways}
+              selectedNeuronId={selectedNeuronId}
+              onSelectNeuron={(node) => {
+                if (node?.vectorPreview) {
+                  setSelectedVectorSample(node.vectorPreview);
+                }
+              }}
+              onFocusMemory={handleFocusMemoryInBrain}
+              pulseSpeed={1.0}
+            />
+
+            {/* Vitals HUD Overlays - Real Database Counts */}
+            <div className="agent-profile__hud">
+              <div className="agent-profile__hud-metric">
+                <span className="agent-profile__hud-label">Total Space Memories</span>
+                <strong className="agent-profile__hud-value">
+                  {brainState?.metrics.totalMemories ?? memories.length}
+                </strong>
+              </div>
+
+              <div className="agent-profile__hud-metric">
+                <span className="agent-profile__hud-label">White Matter Nerves</span>
+                <strong className="agent-profile__hud-value">
+                  {brainState?.metrics.nerveTractsCount ?? 6} Tracts
+                </strong>
+              </div>
+
+              <div className="agent-profile__hud-metric">
+                <span className="agent-profile__hud-label">Synaptic Axons</span>
+                <strong className="agent-profile__hud-value">
+                  {brainState?.metrics.axonsCount ?? 240}
+                </strong>
+              </div>
+
+              <div className="agent-profile__hud-metric">
+                <span className="agent-profile__hud-label">Active Neurons</span>
+                <strong className="agent-profile__hud-value">
+                  {brainState?.metrics.neuronCount ?? brainState?.topology?.length ?? 80}
+                </strong>
+              </div>
+            </div>
+          </div>
+        ) : (
+          <BrainAnalyticsGraph
             agentCode={agentCode}
+            displayName={agentDisplayName}
             accentColor={archetypeConfig.color}
             secondaryColor={archetypeConfig.secondary}
             topology={brainState?.topology}
             nervePathways={brainState?.nervePathways}
-            selectedNeuronId={selectedNeuronId}
-            onSelectNeuron={(node) => {
-              if (node?.vectorPreview) {
+            metrics={brainState?.metrics}
+            onSelectNode={(node) => {
+              setSelectedNeuronId(node.id);
+              if (node.vectorPreview) {
                 setSelectedVectorSample(node.vectorPreview);
               }
             }}
-            onFocusMemory={handleFocusMemoryInBrain}
-            pulseSpeed={1.0}
           />
-
-          {/* Vitals HUD Overlays - Real Database Counts */}
-          <div className="agent-profile__hud">
-            <div className="agent-profile__hud-metric">
-              <span className="agent-profile__hud-label">Total Space Memories</span>
-              <strong className="agent-profile__hud-value">
-                {brainState?.metrics.totalMemories ?? memories.length}
-              </strong>
-            </div>
-
-            <div className="agent-profile__hud-metric">
-              <span className="agent-profile__hud-label">White Matter Nerves</span>
-              <strong className="agent-profile__hud-value">
-                {brainState?.metrics.nerveTractsCount ?? 6} Tracts
-              </strong>
-            </div>
-
-            <div className="agent-profile__hud-metric">
-              <span className="agent-profile__hud-label">Synaptic Axons</span>
-              <strong className="agent-profile__hud-value">
-                {brainState?.metrics.axonsCount ?? 240}
-              </strong>
-            </div>
-
-            <div className="agent-profile__hud-metric">
-              <span className="agent-profile__hud-label">Active Neurons</span>
-              <strong className="agent-profile__hud-value">
-                {brainState?.metrics.neuronCount ?? brainState?.topology?.length ?? 80}
-              </strong>
-            </div>
-          </div>
-        </div>
+        )}
       </section>
 
       {/* Embeddings & Vector Intelligence Section */}
