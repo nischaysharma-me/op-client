@@ -65,13 +65,13 @@ const RealAnatomicalBrainMesh: React.FC<{
 }> = ({ accentColor, secondaryColor, renderStyle, pulseSpeed }) => {
   const { scene } = useGLTF("/models/brain.glb", "/draco/gltf/");
   const groupRef = useRef<THREE.Group>(null!);
+  const materialsRef = useRef<THREE.MeshStandardMaterial[]>([]);
 
   const processedBrain = useMemo(() => {
     const cloned = scene.clone(true);
+    const mats: THREE.MeshStandardMaterial[] = [];
 
     // Center model at cranial center so gyri surface points align exactly:
-    // Raw Cranial Center: (X: 0.0, Y: 1.5937, Z: -0.0055)
-    // Scale: 19.4 gives anatomical span of X: [-1.2, 1.2], Y: [-1.0, 1.7], Z: [-1.6, 1.5]
     const cranialCenterX = 0.0;
     const cranialCenterY = 1.5937;
     const cranialCenterZ = -0.0055;
@@ -92,49 +92,72 @@ const RealAnatomicalBrainMesh: React.FC<{
         const isArtery =
           name.includes("artery") || name.includes("vein") || name.includes("sinus");
 
+        let mat: THREE.MeshStandardMaterial;
+
         if (renderStyle === "contour") {
-          // Inked medical line-art / high-contrast contours matching the uploaded pen-and-ink drawing
-          mesh.material = new THREE.MeshStandardMaterial({
-            color: new THREE.Color("#e2e8f0"),
-            emissive: new THREE.Color(isArtery ? secondaryColor : "#0f172a"),
-            emissiveIntensity: isArtery ? 0.6 : 0.2,
-            roughness: 0.8,
-            metalness: 0.1,
+          // Inked medical line-art / high-contrast contours with subtle translucency so firing somas shine through
+          mat = new THREE.MeshStandardMaterial({
+            color: new THREE.Color("#0f172a"),
+            emissive: new THREE.Color(isArtery ? secondaryColor : "#1e293b"),
+            emissiveIntensity: isArtery ? 0.8 : 0.25,
+            roughness: 0.65,
+            metalness: 0.3,
+            transparent: true,
+            opacity: 0.52,
             wireframe: false,
+            depthWrite: false,
           });
         } else if (renderStyle === "cortex") {
-          // Shaded organic cerebral cortex
-          mesh.material = new THREE.MeshStandardMaterial({
-            color: new THREE.Color(isArtery ? "#fbbf24" : accentColor),
+          // Bio-luminescent organic cerebral cortex - translucent glass with glowing sulci edges
+          // allowing firing neurons and action potential sparks deep inside to shine out brilliantly
+          mat = new THREE.MeshStandardMaterial({
+            color: new THREE.Color(isArtery ? "#fbbf24" : "#0f172a"),
             emissive: new THREE.Color(accentColor),
-            emissiveIntensity: isArtery ? 0.8 : 0.35,
-            roughness: 0.45,
-            metalness: 0.55,
+            emissiveIntensity: isArtery ? 1.0 : 0.3,
+            roughness: 0.2,
+            metalness: 0.8,
             transparent: true,
-            opacity: isArtery ? 0.9 : 0.82,
+            opacity: isArtery ? 0.85 : 0.45,
+            depthWrite: false,
           });
         } else {
-          // Glowing translucent cyber hologram
-          mesh.material = new THREE.MeshStandardMaterial({
+          // Glowing translucent cyber hologram with neon gyri contours
+          mat = new THREE.MeshStandardMaterial({
             color: new THREE.Color(accentColor),
             emissive: new THREE.Color(isArtery ? secondaryColor : accentColor),
-            emissiveIntensity: isArtery ? 1.2 : 0.55,
-            roughness: 0.25,
-            metalness: 0.85,
+            emissiveIntensity: isArtery ? 1.4 : 0.65,
+            roughness: 0.1,
+            metalness: 0.9,
             transparent: true,
-            opacity: isArtery ? 0.85 : 0.72,
+            opacity: isArtery ? 0.8 : 0.38,
+            depthWrite: false,
           });
         }
+
+        mesh.material = mat;
+        mats.push(mat);
       }
     });
 
+    materialsRef.current = mats;
     return cloned;
   }, [scene, accentColor, secondaryColor, renderStyle]);
 
   useFrame(({ clock }) => {
+    const elapsed = clock.getElapsedTime();
+
+    // Synaptic electrical wave pulsing across the brain mesh material
+    const wave = Math.sin(elapsed * 2.8 * pulseSpeed);
+    const dynamicEmissive = 0.25 + Math.pow(Math.max(0, wave), 2) * 0.45;
+
+    materialsRef.current.forEach((mat) => {
+      if (mat) {
+        mat.emissiveIntensity = dynamicEmissive;
+      }
+    });
+
     if (groupRef.current && renderStyle === "hologram") {
-      const elapsed = clock.getElapsedTime();
-      const pulse = 1.0 + Math.sin(elapsed * 2.4 * pulseSpeed) * 0.015;
+      const pulse = 1.0 + Math.sin(elapsed * 2.4 * pulseSpeed) * 0.012;
       groupRef.current.scale.set(pulse, pulse, pulse);
     }
   });
@@ -200,56 +223,62 @@ const ProceduralAnatomicalFallback: React.FC<{
   );
 };
 
-// 2. White Matter Nerve Pathways Running Through Fissures
+// 2. White Matter Nerve Pathways Running Through Fissures (Glowing 3D Axon Bundles)
 const NervePathwaysGroup: React.FC<{
   pathways: NervePathwayData[];
   pulseSpeed: number;
-}> = ({ pathways }) => {
-  const splineLines = useMemo(() => {
+}> = ({ pathways, pulseSpeed }) => {
+  const pathwayMeshes = useMemo(() => {
     return pathways.map((pw) => {
       const curvePoints = pw.points.map((p) => new THREE.Vector3(p.x, p.y, p.z));
       const curve = new THREE.CatmullRomCurve3(curvePoints);
-      const sampled = curve.getPoints(50);
-      const flatPositions = new Float32Array(sampled.length * 3);
-      sampled.forEach((pt, i) => {
-        flatPositions[i * 3] = pt.x;
-        flatPositions[i * 3 + 1] = pt.y;
-        flatPositions[i * 3 + 2] = pt.z;
-      });
+      const tubeGeo = new THREE.TubeGeometry(curve, 64, 0.035, 8, false);
       return {
         id: pw.id,
         color: pw.color,
-        positions: flatPositions,
+        geometry: tubeGeo,
       };
     });
   }, [pathways]);
 
+  const matRef = useRef<THREE.MeshStandardMaterial>(null!);
+
+  useFrame(({ clock }) => {
+    if (matRef.current) {
+      const elapsed = clock.getElapsedTime() * pulseSpeed;
+      // Axon transmission wave pulsing along the nerve fibers
+      matRef.current.emissiveIntensity = 1.2 + Math.sin(elapsed * 4.0) * 0.6;
+    }
+  });
+
   return (
     <group>
-      {splineLines.map((line) => (
-        <line key={line.id}>
-          <bufferGeometry>
-            <bufferAttribute attach="attributes-position" args={[line.positions, 3]} />
-          </bufferGeometry>
-          <lineBasicMaterial
-            color={line.color}
+      {pathwayMeshes.map((p) => (
+        <mesh key={p.id} geometry={p.geometry}>
+          <meshStandardMaterial
+            ref={matRef}
+            color={p.color}
+            emissive={p.color}
+            emissiveIntensity={1.4}
+            roughness={0.2}
+            metalness={0.8}
             transparent
-            opacity={0.6}
+            opacity={0.85}
             blending={THREE.AdditiveBlending}
-            linewidth={2}
+            depthWrite={false}
           />
-        </line>
+        </mesh>
       ))}
     </group>
   );
 };
 
-// 3. Action Potential Traveling Synaptic Impulses
+// 3. Action Potential Traveling Synaptic Impulses (Blazing Energy Sparks)
 const ActionPotentials: React.FC<{
   pathways: NervePathwayData[];
   pulseSpeed: number;
 }> = ({ pathways, pulseSpeed }) => {
-  const impulseCount = 24;
+  const impulseCount = 48;
   const pointsRef = useRef<THREE.Points>(null!);
 
   const curves = useMemo(() => {
@@ -263,7 +292,7 @@ const ActionPotentials: React.FC<{
     return Array.from({ length: impulseCount }).map((_, i) => ({
       curveIdx: i % Math.max(1, curves.length),
       t: Math.random(),
-      speed: (0.006 + Math.random() * 0.01) * pulseSpeed,
+      speed: (0.012 + (i % 5) * 0.005) * pulseSpeed,
     }));
   }, [curves, pulseSpeed]);
 
@@ -295,10 +324,10 @@ const ActionPotentials: React.FC<{
         <bufferAttribute attach="attributes-position" args={[positions, 3]} />
       </bufferGeometry>
       <pointsMaterial
-        size={0.28}
+        size={0.42}
         color="#ffffff"
         transparent
-        opacity={0.95}
+        opacity={1.0}
         blending={THREE.AdditiveBlending}
         depthWrite={false}
       />
@@ -306,29 +335,72 @@ const ActionPotentials: React.FC<{
   );
 };
 
-// 4. Interactive Cortical Neurons on Gyri Surface
+// 4. Interactive Cortical Neurons on Gyri Surface with Dramatic Synaptic Action Potential Firing
 const NeuronSoma: React.FC<{
   node: NeuronNodeData;
   accentColor: string;
   isSelected: boolean;
   onSelect: (node: NeuronNodeData) => void;
-}> = ({ node, accentColor, isSelected, onSelect }) => {
+  pulseSpeed: number;
+}> = ({ node, accentColor, isSelected, onSelect, pulseSpeed }) => {
   const meshRef = useRef<THREE.Mesh>(null!);
+  const haloRef = useRef<THREE.Mesh>(null!);
   const [hovered, setHovered] = useState(false);
 
+  // Pseudo-random firing rhythm offset based on node id coordinates
+  const firingPhase = useMemo(() => {
+    return (Math.abs(node.x * 13.7 + node.y * 19.3 + node.z * 29.1) % 10) * 0.628;
+  }, [node]);
+
   const color = node.type && TYPE_COLORS[node.type] ? TYPE_COLORS[node.type] : accentColor;
-  const baseScale = 0.1 + (node.intensity || 0.5) * 0.06;
+  // Increase base scale so somas are clearly visible across gyri folds
+  const baseScale = 0.16 + (node.intensity || 0.5) * 0.12;
 
   useFrame(({ clock }) => {
-    if (!meshRef.current) return;
-    const elapsed = clock.getElapsedTime();
-    const pulseFactor = 1.0 + Math.sin(elapsed * 4.5 + node.x * 2.0) * 0.14;
-    const scale = (hovered || isSelected ? baseScale * 1.7 : baseScale) * pulseFactor;
-    meshRef.current.scale.set(scale, scale, scale);
+    const elapsed = clock.getElapsedTime() * pulseSpeed;
+
+    // Biological Action Potential curve (steep depolarization spike followed by refractory recovery)
+    const cycle = (elapsed * 3.2 + firingPhase) % (Math.PI * 2);
+    // Spike occurs sharply when sin exceeds 0.7
+    const isFiring = Math.sin(cycle) > 0.65;
+    const spikeIntensity = isFiring ? Math.pow(Math.sin(cycle), 4) * 2.8 : 0.15;
+
+    if (meshRef.current) {
+      const pulseFactor = 1.0 + spikeIntensity * 0.45;
+      const scale = (hovered || isSelected ? baseScale * 1.8 : baseScale) * pulseFactor;
+      meshRef.current.scale.set(scale, scale, scale);
+
+      const mat = meshRef.current.material as THREE.MeshStandardMaterial;
+      if (mat) {
+        mat.emissiveIntensity = hovered || isSelected ? 4.0 : 1.2 + spikeIntensity * 2.5;
+      }
+    }
+
+    if (haloRef.current) {
+      const haloScale = baseScale * (2.2 + spikeIntensity * 1.8);
+      haloRef.current.scale.set(haloScale, haloScale, haloScale);
+      const haloMat = haloRef.current.material as THREE.MeshBasicMaterial;
+      if (haloMat) {
+        haloMat.opacity = isFiring ? 0.75 + spikeIntensity * 0.25 : (hovered || isSelected ? 0.6 : 0.18);
+      }
+    }
   });
 
   return (
     <group position={[node.x, node.y, node.z]}>
+      {/* Outer Synaptic Flare Corona */}
+      <mesh ref={haloRef}>
+        <sphereGeometry args={[1, 16, 16]} />
+        <meshBasicMaterial
+          color={color}
+          transparent
+          opacity={0.35}
+          blending={THREE.AdditiveBlending}
+          depthWrite={false}
+        />
+      </mesh>
+
+      {/* Core Neuron Soma Sphere */}
       <mesh
         ref={meshRef}
         onClick={(e) => {
@@ -344,20 +416,20 @@ const NeuronSoma: React.FC<{
           setHovered(false);
         }}
       >
-        <sphereGeometry args={[1, 16, 16]} />
+        <sphereGeometry args={[1, 20, 20]} />
         <meshStandardMaterial
           color={color}
           emissive={color}
-          emissiveIntensity={hovered || isSelected ? 2.2 : 0.9 + (node.intensity || 0.5) * 0.7}
-          roughness={0.15}
-          metalness={0.85}
+          emissiveIntensity={1.8}
+          roughness={0.1}
+          metalness={0.9}
         />
       </mesh>
 
       {/* Target Reticle Ring when Selected */}
       {isSelected && (
         <mesh rotation={[Math.PI / 2, 0, 0]}>
-          <ringGeometry args={[0.24, 0.32, 32]} />
+          <ringGeometry args={[0.35, 0.48, 32]} />
           <meshBasicMaterial
             color="#ffffff"
             side={THREE.DoubleSide}
@@ -544,6 +616,7 @@ const BrainScene: React.FC<{
                 accentColor={accentColor}
                 isSelected={selectedNeuron?.id === node.id}
                 onSelect={onSelectNeuron}
+                pulseSpeed={pulseSpeed}
               />
             ))}
         </group>
@@ -596,12 +669,13 @@ const R3FNeuralBrain: React.FC<R3FNeuralBrainProps> = ({
 
   return (
     <div className="neural-brain-canvas">
-      {/* Top Left Live R3F Telemetry Badge */}
+      {/* Top Left Live R3F Telemetry Badge with Firing State */}
       <div className="neural-brain-canvas__badge">
         <span className="neural-brain-canvas__dot" style={{ backgroundColor: accentColor }} />
-        <span>Anatomical Cortex 3D Model</span>
-        <span className="badge badge--pill badge--tag" style={{ marginLeft: "0.4rem" }}>
-          Gyri & Sulci Fissures
+        <span>Anatomical Cortex 3D Engine</span>
+        <span className="badge badge--pill badge--tag" style={{ marginLeft: "0.4rem", display: "inline-flex", alignItems: "center", gap: "0.3rem" }}>
+          <Zap size={11} style={{ color: "#fbbf24" }} />
+          <span>Firing Active: {topology.length} Somas</span>
         </span>
       </div>
 
