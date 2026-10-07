@@ -69,20 +69,20 @@ const RealAnatomicalBrainMesh: React.FC<{
   const processedBrain = useMemo(() => {
     const cloned = scene.clone(true);
 
-    // Compute bounding box
-    const box = new THREE.Box3().setFromObject(cloned);
-    const size = new THREE.Vector3();
-    box.getSize(size);
-    const center = new THREE.Vector3();
-    box.getCenter(center);
+    // Center model at cranial center so gyri surface points align exactly:
+    // Raw Cranial Center: (X: 0.0, Y: 1.5937, Z: -0.0055)
+    // Scale: 19.4 gives anatomical span of X: [-1.2, 1.2], Y: [-1.0, 1.7], Z: [-1.6, 1.5]
+    const cranialCenterX = 0.0;
+    const cranialCenterY = 1.5937;
+    const cranialCenterZ = -0.0055;
+    const anatomicalScale = 19.4;
 
-    // Center model at origin
-    cloned.position.set(-center.x, -center.y, -center.z);
-
-    // Normalize scale to fit nicely in 3D stage
-    const maxDimension = Math.max(size.x, size.y, size.z);
-    const scale = 5.2 / (maxDimension || 1);
-    cloned.scale.set(scale, scale, scale);
+    cloned.position.set(
+      -cranialCenterX * anatomicalScale,
+      -cranialCenterY * anatomicalScale,
+      -cranialCenterZ * anatomicalScale
+    );
+    cloned.scale.set(anatomicalScale, anatomicalScale, anatomicalScale);
 
     // Apply styled materials based on user's selected render aesthetic
     cloned.traverse((child) => {
@@ -140,7 +140,7 @@ const RealAnatomicalBrainMesh: React.FC<{
   });
 
   return (
-    <group ref={groupRef} rotation={[-Math.PI / 2.3, 0, 0]}>
+    <group ref={groupRef}>
       <primitive object={processedBrain} />
     </group>
   );
@@ -379,16 +379,17 @@ const LatentEmbeddingCloud: React.FC<{
 
   const particles = useMemo(() => {
     const coords: [number, number, number][] = [];
-    const count = 180;
+    const count = 220;
     for (let i = 0; i < count; i++) {
-      const r = 2.4 + (Math.random() - 0.5) * 0.8;
+      // Fit cloud around the brain cortex surface
       const theta = Math.random() * Math.PI * 2;
       const phi = Math.acos(Math.random() * 2 - 1);
-      coords.push([
-        r * Math.sin(phi) * Math.cos(theta),
-        r * Math.sin(phi) * Math.sin(theta) * 0.85,
-        r * Math.cos(phi) * 1.15,
-      ]);
+      const r = 1.05 + Math.random() * 0.45;
+      
+      const x = r * Math.sin(phi) * Math.cos(theta) * 0.95;
+      const y = 0.55 + r * Math.sin(phi) * Math.sin(theta) * 0.85;
+      const z = r * Math.cos(phi) * 1.15;
+      coords.push([x, y, z]);
     }
     const flat = new Float32Array(count * 3);
     coords.forEach((c, idx) => {
@@ -465,18 +466,18 @@ const BrainScene: React.FC<{
     if (!controlsRef.current) return;
     const ctrl = controlsRef.current;
     if (viewAngle === "top") {
-      // Top-Down Dorsal view matching reference drawing
-      ctrl.object.position.set(0, 8.8, 0.05);
-      ctrl.target.set(0, 0, 0);
+      // Top-Down Dorsal view matching pen-and-ink reference drawing
+      ctrl.object.position.set(0, 6.5, 0.05);
+      ctrl.target.set(0, 0.7, 0);
     } else if (viewAngle === "iso") {
-      ctrl.object.position.set(0, 4.2, 7.8);
-      ctrl.target.set(0, 0, 0);
+      ctrl.object.position.set(0, 3.8, 5.2);
+      ctrl.target.set(0, 0.7, 0);
     } else if (viewAngle === "profile") {
-      ctrl.object.position.set(8.5, 0.5, 0);
-      ctrl.target.set(0, 0, 0);
+      ctrl.object.position.set(5.5, 0.7, 0);
+      ctrl.target.set(0, 0.7, 0);
     } else if (viewAngle === "front") {
-      ctrl.object.position.set(0, 0, 8.8);
-      ctrl.target.set(0, 0, 0);
+      ctrl.object.position.set(0, 0.7, 5.5);
+      ctrl.target.set(0, 0.7, 0);
     }
     ctrl.update();
   }, [viewAngle]);
