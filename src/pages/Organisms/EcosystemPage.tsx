@@ -21,7 +21,9 @@ import {
   TrendingUp,
   FastForward,
   Flame,
-  Swords
+  Swords,
+  Hourglass,
+  Timer
 } from "lucide-react";
 
 interface EvolutionEvent {
@@ -60,6 +62,10 @@ interface OrganismItem {
   maturityAge: number;
   fitnessScore: number;
   reproductionCount: number;
+  cooldownConfigSeconds?: number;
+  cooldownRemainingSeconds?: number;
+  isCoolingDown?: boolean;
+  lastActionTimestamp?: string;
   stats?: {
     debatesParticipated: number;
     solutionsProposed: number;
@@ -116,8 +122,8 @@ const EcosystemPage: React.FC = () => {
 
   useEffect(() => {
     fetchData();
-    // Poll updates every 12 seconds so background evolution is visible live
-    const interval = setInterval(fetchData, 12000);
+    // Poll updates every 4 seconds so agent cooldown countdowns and background evolution are visible live!
+    const interval = setInterval(fetchData, 4000);
     return () => clearInterval(interval);
   }, []);
 
@@ -371,6 +377,37 @@ const EcosystemPage: React.FC = () => {
                 <p style={{ fontSize: "1.25rem", color: "var(--color-text-secondary)", lineHeight: 1.4 }}>
                   {org.specialty}
                 </p>
+
+                {/* Cooldown & Readiness Status Banner */}
+                <div style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  padding: "0.5rem 0.8rem",
+                  background: org.isCoolingDown ? "rgba(239, 68, 68, 0.08)" : "rgba(34, 197, 94, 0.08)",
+                  border: `1px solid ${org.isCoolingDown ? "rgba(239, 68, 68, 0.25)" : "rgba(34, 197, 94, 0.25)"}`,
+                  borderRadius: "var(--radius-sm, 6px)",
+                  fontSize: "1.15rem",
+                  margin: "0.6rem 0"
+                }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", color: org.isCoolingDown ? "#f87171" : "#4ade80" }}>
+                    {org.isCoolingDown ? <Hourglass size={13} /> : <Timer size={13} />}
+                    <span style={{ fontWeight: 600 }}>
+                      {org.isCoolingDown ? "Cooldown Resting Phase" : "Ready to Reply"}
+                    </span>
+                  </div>
+
+                  <span style={{
+                    fontWeight: 700,
+                    fontFamily: "monospace",
+                    color: org.isCoolingDown ? "#fca5a5" : "#86efac",
+                    background: org.isCoolingDown ? "rgba(239, 68, 68, 0.15)" : "rgba(34, 197, 94, 0.15)",
+                    padding: "2px 6px",
+                    borderRadius: "4px"
+                  }}>
+                    {org.isCoolingDown ? `${org.cooldownRemainingSeconds}s remaining` : `Cycle: ${org.cooldownConfigSeconds || 20}s`}
+                  </span>
+                </div>
 
                 {/* Lifespan & Maturity Progress Gauge */}
                 <div className="ecosystem__life-gauge">

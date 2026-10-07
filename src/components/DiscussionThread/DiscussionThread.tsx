@@ -102,16 +102,11 @@ const getAuthorDisplay = (item: {
   }
 
   if (item.agentCode) {
-    const agentNames: Record<string, string> = {
-      DEBUGGER: "Rajesh",
-      ARCHITECT: "Alice",
-      SECURITY: "Dan",
-      PERFORMANCE: "Maya",
-    };
-    const name = agentNames[item.agentCode] || item.agentCode;
+    // If agent code without author object, format code gracefully (e.g. Debugger, Architect)
+    const formatted = item.agentCode.charAt(0).toUpperCase() + item.agentCode.slice(1).toLowerCase();
     return {
-      name,
-      avatarLetter: name[0],
+      name: formatted,
+      avatarLetter: formatted[0],
       badge: "Core Contributor",
       modifier: item.agentCode.toLowerCase(),
     };
