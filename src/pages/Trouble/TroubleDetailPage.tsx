@@ -37,6 +37,7 @@ export const TroubleDetailPage: React.FC = () => {
   const [copiedCode, setCopiedCode] = useState(false);
   const [isStreaming, setIsStreaming] = useState(false);
   const [copiedLink, setCopiedLink] = useState(false);
+  const [isResolving, setIsResolving] = useState(false);
 
   const fetchIssue = async () => {
     if (!id) {
@@ -44,7 +45,6 @@ export const TroubleDetailPage: React.FC = () => {
       return;
     }
     try {
-      setLoading(true);
       let res;
       try {
         res = await axios.get(
@@ -73,7 +73,29 @@ export const TroubleDetailPage: React.FC = () => {
 
   useEffect(() => {
     fetchIssue();
+
+    // Poll issue status every 6 seconds to track autonomous loop state and auto-resolution
+    const interval = setInterval(() => {
+      fetchIssue();
+    }, 6000);
+
+    return () => clearInterval(interval);
   }, [id, location.pathname]);
+
+  const handleMarkResolved = async () => {
+    if (!issue?._id || isResolving) return;
+    try {
+      setIsResolving(true);
+      await axios.post(
+        `${import.meta.env.VITE_APP_PROXY}/api/issues/resolve/${issue._id}`
+      );
+      await fetchIssue();
+    } catch (err) {
+      console.error("Failed to resolve issue:", err);
+    } finally {
+      setIsResolving(false);
+    }
+  };
 
   const handleCopyCode = () => {
     if (issue?.codeSnippet) {
@@ -247,19 +269,53 @@ export const TroubleDetailPage: React.FC = () => {
         )}
 
         {/* Actions Bar */}
-        <div className="thread-root-card__footer">
-          <button
-            type="button"
-            className={`btn ${isStreaming ? "btn--secondary" : "btn--primary"} btn--sm`}
-            onClick={() => setIsStreaming((prev) => !prev)}
-          >
-            {isStreaming ? (
-              <Radio size={14} style={{ color: "#ef4444" }} />
-            ) : (
-              <Sparkles size={14} />
+        <div className="thread-root-card__footer" style={{ display: "flex", flexWrap: "wrap", alignItems: "center", justifyContent: "space-between", gap: "10px" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+            <button
+              type="button"
+              className={`btn ${isStreaming ? "btn--secondary" : "btn--primary"} btn--sm`}
+              onClick={() => setIsStreaming((prev) => !prev)}
+            >
+              {isStreaming ? (
+                <Radio size={14} style={{ color: "#ef4444" }} />
+              ) : (
+                <Sparkles size={14} />
+              )}
+              <span>{isStreaming ? "Generating Thoughts..." : "💬 Invite Agent Thoughts"}</span>
+            </button>
+
+            {!isSolved && (
+              <button
+                type="button"
+                className="btn btn--ghost btn--sm"
+                onClick={handleMarkResolved}
+                disabled={isResolving}
+                style={{
+                  border: "1px solid rgba(16, 185, 129, 0.4)",
+                  color: "#10b981",
+                  backgroundColor: "rgba(16, 185, 129, 0.08)",
+                }}
+                title="Mark this issue as solved and conclude agent cycle"
+              >
+                <CheckCircle2 size={14} />
+                <span>{isResolving ? "Resolving..." : "Mark as Resolved"}</span>
+              </button>
             )}
-            <span>{isStreaming ? "Generating Thoughts..." : "💬 Invite Agent Thoughts"}</span>
-          </button>
+          </div>
+
+          <div style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: "12px", color: "var(--text-secondary, #94a3b8)" }}>
+            {!isSolved ? (
+              <span style={{ display: "inline-flex", alignItems: "center", gap: "6px", backgroundColor: "rgba(99, 102, 241, 0.1)", color: "#818cf8", padding: "4px 10px", borderRadius: "12px", border: "1px solid rgba(99, 102, 241, 0.25)" }}>
+                <span style={{ width: "7px", height: "7px", borderRadius: "50%", backgroundColor: "#22c55e", display: "inline-block", animation: "pulse 2s infinite" }} />
+                <span>Autonomous discussion active • 20s cooldown</span>
+              </span>
+            ) : (
+              <span style={{ display: "inline-flex", alignItems: "center", gap: "6px", backgroundColor: "rgba(16, 185, 129, 0.1)", color: "#10b981", padding: "4px 10px", borderRadius: "12px", border: "1px solid rgba(16, 185, 129, 0.25)" }}>
+                <CheckCircle2 size={13} />
+                <span>Issue Resolved • Autonomous cycle ended</span>
+              </span>
+            )}
+          </div>
         </div>
       </article>
 

@@ -103,10 +103,10 @@ const getAuthorDisplay = (item: {
 
   if (item.agentCode) {
     const agentNames: Record<string, string> = {
-      DEBUGGER: "Dexter",
-      ARCHITECT: "Ada",
-      SECURITY: "Sentinel",
-      PERFORMANCE: "Turbo",
+      DEBUGGER: "Rajesh",
+      ARCHITECT: "Alice",
+      SECURITY: "Dan",
+      PERFORMANCE: "Maya",
     };
     const name = agentNames[item.agentCode] || item.agentCode;
     return {
@@ -401,7 +401,16 @@ const DiscussionThread: React.FC<DiscussionThreadProps> = ({
 
   useEffect(() => {
     fetchThread();
-  }, [issueId]);
+
+    // Auto-poll thread progression every 5 seconds so autonomous agent turns appear live!
+    const pollInterval = setInterval(() => {
+      if (!isStreaming) {
+        fetchThread();
+      }
+    }, 5000);
+
+    return () => clearInterval(pollInterval);
+  }, [issueId, isStreaming]);
 
   // Handle Live Streaming of Community Comments
   useEffect(() => {
