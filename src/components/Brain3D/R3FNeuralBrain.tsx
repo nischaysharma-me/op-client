@@ -176,11 +176,11 @@ const InternalBrainParticleMesh: React.FC<{
   pulseSpeed: number;
 }> = ({ accentColor, secondaryColor, pulseSpeed }) => {
   const pointsRef = useRef<THREE.Points>(null!);
-  const count = 750;
+  const count = 900;
 
   // Particle data with origins, target points along gyri, and current interpolations
   const particleState = useMemo(() => {
-    // Generate particle positions inside dual hemispheres conforming to brain contours
+    // Generate particle positions strictly inside dual hemispheres conforming closely to brain interior
     const basePositions = new Float32Array(count * 3);
     const velocities = new Float32Array(count * 3);
     const colors = new Float32Array(count * 3);
@@ -193,29 +193,30 @@ const InternalBrainParticleMesh: React.FC<{
       const v = Math.random();
       const theta = u * Math.PI * 2;
       const phi = Math.acos(2 * v - 1);
-      // Dual hemisphere bounds: X in [-1.0, 1.0], Y in [-0.6, 1.5], Z in [-1.4, 1.3]
+      // Dual hemisphere bounds tightly inside brain volume:
+      // X in [-0.75, 0.75], Y in [0.15, 1.35], Z in [-1.15, 1.05]
       const hemisphere = i % 2 === 0 ? 1 : -1;
-      const fissureGap = 0.14;
-      const rx = 0.2 + Math.random() * 0.7;
-      const ry = 0.2 + Math.random() * 0.9;
-      const rz = 0.2 + Math.random() * 1.1;
+      const fissureGap = 0.10;
+      const rx = 0.15 + Math.random() * 0.48;
+      const ry = 0.15 + Math.random() * 0.58;
+      const rz = 0.15 + Math.random() * 0.78;
 
-      const px = (rx * Math.sin(phi) * Math.cos(theta) * 0.85 + hemisphere * fissureGap);
-      const py = 0.65 + ry * Math.sin(phi) * Math.sin(theta) * 0.75;
-      const pz = rz * Math.cos(phi) * 1.15;
+      const px = (rx * Math.sin(phi) * Math.cos(theta) * 0.75 + hemisphere * fissureGap);
+      const py = 0.72 + ry * Math.sin(phi) * Math.sin(theta) * 0.62;
+      const pz = rz * Math.cos(phi) * 0.95;
 
       basePositions[i * 3] = px;
       basePositions[i * 3 + 1] = py;
       basePositions[i * 3 + 2] = pz;
 
-      // Velocities along the neuro-axis (Frontal <-> Occipital, Left <-> Right trans-hemispheric)
-      velocities[i * 3] = (Math.random() - 0.5) * 0.015;
-      velocities[i * 3 + 1] = (Math.random() - 0.5) * 0.012;
-      velocities[i * 3 + 2] = (Math.random() - 0.5) * 0.022;
+      // Velocities along the internal neuro-axis - fine micro-currents
+      velocities[i * 3] = (Math.random() - 0.5) * 0.008;
+      velocities[i * 3 + 1] = (Math.random() - 0.5) * 0.007;
+      velocities[i * 3 + 2] = (Math.random() - 0.5) * 0.012;
 
       // Assign dynamic synaptic color
       const mix = Math.random();
-      const c = mix > 0.8 ? colorWhite : (mix > 0.4 ? colorA : colorB);
+      const c = mix > 0.85 ? colorWhite : (mix > 0.45 ? colorA : colorB);
       colors[i * 3] = c.r;
       colors[i * 3 + 1] = c.g;
       colors[i * 3 + 2] = c.b;
@@ -241,13 +242,13 @@ const InternalBrainParticleMesh: React.FC<{
       posArray[idx + 1] += vels[idx + 1] * pulseSpeed;
       posArray[idx + 2] += vels[idx + 2] * pulseSpeed;
 
-      // Bounce / recycle within anatomical brain volume bounds
+      // Tight bounding recycle so particles never escape beyond cortex volume
       const dx = posArray[idx] - bases[idx];
       const dy = posArray[idx + 1] - bases[idx + 1];
       const dz = posArray[idx + 2] - bases[idx + 2];
       const dist = Math.hypot(dx, dy, dz);
 
-      if (dist > 0.45) {
+      if (dist > 0.16) {
         // Return to stream base
         posArray[idx] = bases[idx];
         posArray[idx + 1] = bases[idx + 1];
@@ -265,10 +266,10 @@ const InternalBrainParticleMesh: React.FC<{
         <bufferAttribute attach="attributes-color" args={[particleState.colors, 3]} />
       </bufferGeometry>
       <pointsMaterial
-        size={0.065}
+        size={0.038}
         vertexColors
         transparent
-        opacity={0.85}
+        opacity={0.88}
         blending={THREE.AdditiveBlending}
         depthWrite={false}
       />
@@ -339,7 +340,7 @@ const NervePathwaysGroup: React.FC<{
     return pathways.map((pw) => {
       const curvePoints = pw.points.map((p) => new THREE.Vector3(p.x, p.y, p.z));
       const curve = new THREE.CatmullRomCurve3(curvePoints);
-      const tubeGeo = new THREE.TubeGeometry(curve, 64, 0.035, 8, false);
+      const tubeGeo = new THREE.TubeGeometry(curve, 64, 0.02, 8, false);
       return {
         id: pw.id,
         color: pw.color,
@@ -431,10 +432,10 @@ const ActionPotentials: React.FC<{
         <bufferAttribute attach="attributes-position" args={[positions, 3]} />
       </bufferGeometry>
       <pointsMaterial
-        size={0.42}
+        size={0.12}
         color="#ffffff"
         transparent
-        opacity={1.0}
+        opacity={0.95}
         blending={THREE.AdditiveBlending}
         depthWrite={false}
       />
@@ -460,8 +461,8 @@ const NeuronSoma: React.FC<{
   }, [node]);
 
   const color = node.type && TYPE_COLORS[node.type] ? TYPE_COLORS[node.type] : accentColor;
-  // Increase base scale so somas are clearly visible across gyri folds
-  const baseScale = 0.16 + (node.intensity || 0.5) * 0.12;
+  // Compact base scale so somas sit neatly embedded into the gyri surface folds
+  const baseScale = 0.08 + (node.intensity || 0.5) * 0.05;
 
   useFrame(({ clock }) => {
     const elapsed = clock.getElapsedTime() * pulseSpeed;
@@ -470,25 +471,25 @@ const NeuronSoma: React.FC<{
     const cycle = (elapsed * 3.2 + firingPhase) % (Math.PI * 2);
     // Spike occurs sharply when sin exceeds 0.7
     const isFiring = Math.sin(cycle) > 0.65;
-    const spikeIntensity = isFiring ? Math.pow(Math.sin(cycle), 4) * 2.8 : 0.15;
+    const spikeIntensity = isFiring ? Math.pow(Math.sin(cycle), 4) * 2.0 : 0.1;
 
     if (meshRef.current) {
-      const pulseFactor = 1.0 + spikeIntensity * 0.45;
-      const scale = (hovered || isSelected ? baseScale * 1.8 : baseScale) * pulseFactor;
+      const pulseFactor = 1.0 + spikeIntensity * 0.35;
+      const scale = (hovered || isSelected ? baseScale * 1.6 : baseScale) * pulseFactor;
       meshRef.current.scale.set(scale, scale, scale);
 
       const mat = meshRef.current.material as THREE.MeshStandardMaterial;
       if (mat) {
-        mat.emissiveIntensity = hovered || isSelected ? 4.0 : 1.2 + spikeIntensity * 2.5;
+        mat.emissiveIntensity = hovered || isSelected ? 3.5 : 1.2 + spikeIntensity * 2.0;
       }
     }
 
     if (haloRef.current) {
-      const haloScale = baseScale * (2.2 + spikeIntensity * 1.8);
+      const haloScale = baseScale * (1.5 + spikeIntensity * 1.0);
       haloRef.current.scale.set(haloScale, haloScale, haloScale);
       const haloMat = haloRef.current.material as THREE.MeshBasicMaterial;
       if (haloMat) {
-        haloMat.opacity = isFiring ? 0.75 + spikeIntensity * 0.25 : (hovered || isSelected ? 0.6 : 0.18);
+        haloMat.opacity = isFiring ? 0.6 + spikeIntensity * 0.2 : (hovered || isSelected ? 0.5 : 0.12);
       }
     }
   });
@@ -558,16 +559,16 @@ const LatentEmbeddingCloud: React.FC<{
 
   const particles = useMemo(() => {
     const coords: [number, number, number][] = [];
-    const count = 220;
+    const count = 180;
     for (let i = 0; i < count; i++) {
-      // Fit cloud around the brain cortex surface
+      // Fit cloud strictly within the subcortical and cortical envelope
       const theta = Math.random() * Math.PI * 2;
       const phi = Math.acos(Math.random() * 2 - 1);
-      const r = 1.05 + Math.random() * 0.45;
+      const r = 0.55 + Math.random() * 0.35;
       
-      const x = r * Math.sin(phi) * Math.cos(theta) * 0.95;
-      const y = 0.55 + r * Math.sin(phi) * Math.sin(theta) * 0.85;
-      const z = r * Math.cos(phi) * 1.15;
+      const x = r * Math.sin(phi) * Math.cos(theta) * 0.85;
+      const y = 0.68 + r * Math.sin(phi) * Math.sin(theta) * 0.75;
+      const z = r * Math.cos(phi) * 0.98;
       coords.push([x, y, z]);
     }
     const flat = new Float32Array(count * 3);
@@ -581,7 +582,7 @@ const LatentEmbeddingCloud: React.FC<{
 
   useFrame(({ clock }) => {
     if (groupRef.current) {
-      groupRef.current.rotation.y = clock.getElapsedTime() * 0.025;
+      groupRef.current.rotation.y = clock.getElapsedTime() * 0.02;
     }
   });
 
@@ -592,10 +593,10 @@ const LatentEmbeddingCloud: React.FC<{
           <bufferAttribute attach="attributes-position" args={[particles, 3]} />
         </bufferGeometry>
         <pointsMaterial
-          size={0.075}
+          size={0.032}
           color={secondaryColor}
           transparent
-          opacity={0.45}
+          opacity={0.5}
           blending={THREE.AdditiveBlending}
           depthWrite={false}
         />
