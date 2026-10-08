@@ -112,41 +112,41 @@ const RealAnatomicalBrainMesh: React.FC<{
         let mat: THREE.MeshStandardMaterial;
 
         if (renderStyle === "contour") {
-          // Inked medical line-art / high-contrast contours with subtle translucency so firing somas shine through
+          // Inked medical line-art / high-contrast contours with very subtle translucency
           mat = new THREE.MeshStandardMaterial({
-            color: new THREE.Color("#0f172a"),
-            emissive: new THREE.Color(isArtery ? secondaryColor : "#1e293b"),
-            emissiveIntensity: isArtery ? 0.8 : 0.25,
-            roughness: 0.65,
-            metalness: 0.3,
+            color: new THREE.Color("#0a0f1d"),
+            emissive: new THREE.Color(isArtery ? secondaryColor : "#111827"),
+            emissiveIntensity: isArtery ? 0.35 : 0.08,
+            roughness: 0.75,
+            metalness: 0.2,
             transparent: true,
-            opacity: 0.52,
+            opacity: 0.48,
             wireframe: false,
             depthWrite: false,
           });
         } else if (renderStyle === "cortex") {
-          // Bio-luminescent organic cerebral cortex - translucent glass with glowing sulci edges
-          // allowing firing neurons and action potential sparks deep inside to shine out brilliantly
+          // Elegant anatomical cerebral cortex - refined translucent biological glass
+          // Subtle, delicate glow highlighting the anatomical gyri without overwhelming the view
           mat = new THREE.MeshStandardMaterial({
-            color: new THREE.Color(isArtery ? "#fbbf24" : "#0f172a"),
+            color: new THREE.Color(isArtery ? "#d97706" : "#090d16"),
             emissive: new THREE.Color(accentColor),
-            emissiveIntensity: isArtery ? 1.0 : 0.3,
-            roughness: 0.2,
-            metalness: 0.8,
+            emissiveIntensity: isArtery ? 0.35 : 0.08,
+            roughness: 0.35,
+            metalness: 0.5,
             transparent: true,
-            opacity: isArtery ? 0.85 : 0.45,
+            opacity: isArtery ? 0.65 : 0.42,
             depthWrite: false,
           });
         } else {
-          // Glowing translucent cyber hologram with neon gyri contours
+          // Soft cyber hologram with faint contours
           mat = new THREE.MeshStandardMaterial({
-            color: new THREE.Color(accentColor),
+            color: new THREE.Color("#0f172a"),
             emissive: new THREE.Color(isArtery ? secondaryColor : accentColor),
-            emissiveIntensity: isArtery ? 1.4 : 0.65,
-            roughness: 0.1,
-            metalness: 0.9,
+            emissiveIntensity: isArtery ? 0.45 : 0.15,
+            roughness: 0.25,
+            metalness: 0.7,
             transparent: true,
-            opacity: isArtery ? 0.8 : 0.38,
+            opacity: isArtery ? 0.6 : 0.32,
             depthWrite: false,
           });
         }
@@ -163,9 +163,10 @@ const RealAnatomicalBrainMesh: React.FC<{
   useFrame(({ clock }) => {
     const elapsed = clock.getElapsedTime();
 
-    // Synaptic electrical wave pulsing across the brain mesh material
-    const wave = Math.sin(elapsed * 2.8 * pulseSpeed);
-    const dynamicEmissive = 0.25 + Math.pow(Math.max(0, wave), 2) * 0.45;
+    // Very gentle, subtle synaptic electrical pulse across the brain mesh
+    const wave = Math.sin(elapsed * 1.8 * pulseSpeed);
+    // Subtle baseline of 0.06 to 0.16 emissive intensity
+    const dynamicEmissive = 0.06 + Math.pow(Math.max(0, wave), 2) * 0.10;
 
     materialsRef.current.forEach((mat) => {
       if (mat) {
@@ -174,7 +175,7 @@ const RealAnatomicalBrainMesh: React.FC<{
     });
 
     if (groupRef.current && renderStyle === "hologram") {
-      const pulse = 1.0 + Math.sin(elapsed * 2.4 * pulseSpeed) * 0.012;
+      const pulse = 1.0 + Math.sin(elapsed * 2.0 * pulseSpeed) * 0.008;
       groupRef.current.scale.set(pulse, pulse, pulse);
     }
   });
@@ -337,10 +338,10 @@ const ProceduralAnatomicalFallback: React.FC<{
         <bufferAttribute attach="attributes-position" args={[positions, 3]} />
       </bufferGeometry>
       <pointsMaterial
-        size={0.12}
+        size={0.08}
         color={accentColor}
         transparent
-        opacity={0.65}
+        opacity={0.35}
         blending={THREE.AdditiveBlending}
         depthWrite={false}
       />
@@ -357,7 +358,7 @@ const NervePathwaysGroup: React.FC<{
     return pathways.map((pw) => {
       const curvePoints = pw.points.map((p) => new THREE.Vector3(p.x, p.y, p.z));
       const curve = new THREE.CatmullRomCurve3(curvePoints);
-      const tubeGeo = new THREE.TubeGeometry(curve, 64, 0.02, 8, false);
+      const tubeGeo = new THREE.TubeGeometry(curve, 64, 0.016, 8, false);
       return {
         id: pw.id,
         color: pw.color,
@@ -371,8 +372,8 @@ const NervePathwaysGroup: React.FC<{
   useFrame(({ clock }) => {
     if (matRef.current) {
       const elapsed = clock.getElapsedTime() * pulseSpeed;
-      // Axon transmission wave pulsing along the nerve fibers
-      matRef.current.emissiveIntensity = 1.2 + Math.sin(elapsed * 4.0) * 0.6;
+      // Gentle, subtle axon transmission pulse
+      matRef.current.emissiveIntensity = 0.45 + Math.sin(elapsed * 2.5) * 0.25;
     }
   });
 
@@ -384,11 +385,11 @@ const NervePathwaysGroup: React.FC<{
             ref={matRef}
             color={p.color}
             emissive={p.color}
-            emissiveIntensity={1.4}
-            roughness={0.2}
-            metalness={0.8}
+            emissiveIntensity={0.5}
+            roughness={0.4}
+            metalness={0.6}
             transparent
-            opacity={0.85}
+            opacity={0.65}
             blending={THREE.AdditiveBlending}
             depthWrite={false}
           />
@@ -506,19 +507,19 @@ const NeuronSoma: React.FC<{
 
       const mat = meshRef.current.material as THREE.MeshStandardMaterial;
       if (mat) {
-        const baseGlow = isHighActivity ? 2.2 : 1.1;
-        mat.emissiveIntensity = hovered || isSelected ? 4.0 : baseGlow + spikeIntensity * 2.4;
+        const baseGlow = isHighActivity ? 1.1 : 0.45;
+        mat.emissiveIntensity = hovered || isSelected ? 2.5 : baseGlow + spikeIntensity * 1.1;
       }
     }
 
     if (haloRef.current) {
-      const haloScale = baseScale * (1.4 + spikeIntensity * 1.1);
+      const haloScale = baseScale * (1.2 + spikeIntensity * 0.6);
       haloRef.current.scale.set(haloScale, haloScale, haloScale);
       const haloMat = haloRef.current.material as THREE.MeshBasicMaterial;
       if (haloMat) {
         haloMat.opacity = isFiring
-          ? 0.55 + spikeIntensity * 0.25
-          : (hovered || isSelected ? 0.6 : (isHighActivity ? 0.25 : 0.1));
+          ? 0.25 + spikeIntensity * 0.15
+          : (hovered || isSelected ? 0.35 : (isHighActivity ? 0.12 : 0.04));
       }
     }
   });
@@ -531,7 +532,7 @@ const NeuronSoma: React.FC<{
         <meshBasicMaterial
           color={color}
           transparent
-          opacity={0.3}
+          opacity={0.15}
           blending={THREE.AdditiveBlending}
           depthWrite={false}
         />
@@ -557,21 +558,21 @@ const NeuronSoma: React.FC<{
         <meshStandardMaterial
           color={color}
           emissive={color}
-          emissiveIntensity={1.8}
-          roughness={0.15}
-          metalness={0.85}
+          emissiveIntensity={0.8}
+          roughness={0.3}
+          metalness={0.7}
         />
       </mesh>
 
       {/* Target Reticle Ring when Selected */}
       {isSelected && (
         <mesh rotation={[Math.PI / 2, 0, 0]}>
-          <ringGeometry args={[0.25, 0.36, 32]} />
+          <ringGeometry args={[0.22, 0.30, 32]} />
           <meshBasicMaterial
             color="#ffffff"
             side={THREE.DoubleSide}
             transparent
-            opacity={0.95}
+            opacity={0.8}
             blending={THREE.AdditiveBlending}
           />
         </mesh>
@@ -622,10 +623,10 @@ const LatentEmbeddingCloud: React.FC<{
           <bufferAttribute attach="attributes-position" args={[particles, 3]} />
         </bufferGeometry>
         <pointsMaterial
-          size={0.020}
+          size={0.018}
           color={secondaryColor}
           transparent
-          opacity={0.45}
+          opacity={0.25}
           blending={THREE.AdditiveBlending}
           depthWrite={false}
         />
@@ -697,12 +698,12 @@ const BrainScene: React.FC<{
 
   return (
     <>
-      <ambientLight intensity={1.1} />
-      <directionalLight position={[6, 12, 6]} intensity={1.4} />
-      <directionalLight position={[-6, -10, -6]} intensity={0.8} />
-      <pointLight position={[0, 8, 0]} color="#ffffff" intensity={1.2} />
-      <pointLight position={[-6, 0, 0]} color={accentColor} intensity={0.9} />
-      <pointLight position={[6, 0, 0]} color={secondaryColor} intensity={0.9} />
+      <ambientLight intensity={0.9} />
+      <directionalLight position={[6, 12, 6]} intensity={1.1} />
+      <directionalLight position={[-6, -10, -6]} intensity={0.6} />
+      <pointLight position={[0, 8, 0]} color="#ffffff" intensity={0.8} />
+      <pointLight position={[-6, 0, 0]} color={accentColor} intensity={0.45} />
+      <pointLight position={[6, 0, 0]} color={secondaryColor} intensity={0.45} />
 
       <OrbitControls
         ref={controlsRef}
