@@ -27,6 +27,11 @@ export interface NeuronNodeData {
   type?: string;
   memoryId?: string;
   vectorPreview?: number[];
+  isFiringNow?: boolean;
+  activityLevel?: number;
+  lastFiredTimestamp?: string | Date;
+  firingFrequency?: number;
+  connectedIssueTitle?: string;
 }
 
 export interface NervePathwayData {
@@ -37,6 +42,17 @@ export interface NervePathwayData {
   points: Array<{ x: number; y: number; z: number }>;
 }
 
+export interface CognitiveTelemetryData {
+  systemActivityLevel?: number;
+  deliberationState?: "THINKING" | "DEBATING" | "RESTING" | "ANALYZING";
+  firingRateMultiplier?: number;
+  recentActionCount?: number;
+  activeTroublesCount?: number;
+  lastActionTimeAgo?: string;
+  isCoolingDown?: boolean;
+  cooldownRemainingSeconds?: number;
+}
+
 interface R3FNeuralBrainProps {
   agentCode: string;
   accentColor?: string;
@@ -44,6 +60,7 @@ interface R3FNeuralBrainProps {
   pulseSpeed?: number;
   topology?: NeuronNodeData[];
   nervePathways?: NervePathwayData[];
+  telemetry?: CognitiveTelemetryData;
   selectedNeuronId?: string | null;
   onSelectNeuron?: (node: NeuronNodeData | null) => void;
   onFocusMemory?: (memoryId: string) => void;
@@ -176,7 +193,7 @@ const InternalBrainParticleMesh: React.FC<{
   pulseSpeed: number;
 }> = ({ accentColor, secondaryColor, pulseSpeed }) => {
   const pointsRef = useRef<THREE.Points>(null!);
-  const count = 900;
+  const count = 750;
 
   // Particle data with origins, target points along gyri, and current interpolations
   const particleState = useMemo(() => {
@@ -194,25 +211,25 @@ const InternalBrainParticleMesh: React.FC<{
       const theta = u * Math.PI * 2;
       const phi = Math.acos(2 * v - 1);
       // Dual hemisphere bounds tightly inside brain volume:
-      // X in [-0.75, 0.75], Y in [0.15, 1.35], Z in [-1.15, 1.05]
+      // Snug inner volume avoiding outer gyri protrusion
       const hemisphere = i % 2 === 0 ? 1 : -1;
-      const fissureGap = 0.10;
-      const rx = 0.15 + Math.random() * 0.48;
-      const ry = 0.15 + Math.random() * 0.58;
-      const rz = 0.15 + Math.random() * 0.78;
+      const fissureGap = 0.09;
+      const rx = 0.12 + Math.random() * 0.38;
+      const ry = 0.12 + Math.random() * 0.46;
+      const rz = 0.12 + Math.random() * 0.62;
 
-      const px = (rx * Math.sin(phi) * Math.cos(theta) * 0.75 + hemisphere * fissureGap);
-      const py = 0.72 + ry * Math.sin(phi) * Math.sin(theta) * 0.62;
-      const pz = rz * Math.cos(phi) * 0.95;
+      const px = (rx * Math.sin(phi) * Math.cos(theta) * 0.72 + hemisphere * fissureGap);
+      const py = 0.72 + ry * Math.sin(phi) * Math.sin(theta) * 0.58;
+      const pz = rz * Math.cos(phi) * 0.88;
 
       basePositions[i * 3] = px;
       basePositions[i * 3 + 1] = py;
       basePositions[i * 3 + 2] = pz;
 
       // Velocities along the internal neuro-axis - fine micro-currents
-      velocities[i * 3] = (Math.random() - 0.5) * 0.008;
-      velocities[i * 3 + 1] = (Math.random() - 0.5) * 0.007;
-      velocities[i * 3 + 2] = (Math.random() - 0.5) * 0.012;
+      velocities[i * 3] = (Math.random() - 0.5) * 0.006;
+      velocities[i * 3 + 1] = (Math.random() - 0.5) * 0.005;
+      velocities[i * 3 + 2] = (Math.random() - 0.5) * 0.009;
 
       // Assign dynamic synaptic color
       const mix = Math.random();
@@ -248,7 +265,7 @@ const InternalBrainParticleMesh: React.FC<{
       const dz = posArray[idx + 2] - bases[idx + 2];
       const dist = Math.hypot(dx, dy, dz);
 
-      if (dist > 0.16) {
+      if (dist > 0.12) {
         // Return to stream base
         posArray[idx] = bases[idx];
         posArray[idx + 1] = bases[idx + 1];
@@ -266,10 +283,10 @@ const InternalBrainParticleMesh: React.FC<{
         <bufferAttribute attach="attributes-color" args={[particleState.colors, 3]} />
       </bufferGeometry>
       <pointsMaterial
-        size={0.038}
+        size={0.022}
         vertexColors
         transparent
-        opacity={0.88}
+        opacity={0.82}
         blending={THREE.AdditiveBlending}
         depthWrite={false}
       />
@@ -385,8 +402,9 @@ const NervePathwaysGroup: React.FC<{
 const ActionPotentials: React.FC<{
   pathways: NervePathwayData[];
   pulseSpeed: number;
-}> = ({ pathways, pulseSpeed }) => {
-  const impulseCount = 48;
+  activityMultiplier?: number;
+}> = ({ pathways, pulseSpeed, activityMultiplier = 1.0 }) => {
+  const impulseCount = 42;
   const pointsRef = useRef<THREE.Points>(null!);
 
   const curves = useMemo(() => {
@@ -400,9 +418,9 @@ const ActionPotentials: React.FC<{
     return Array.from({ length: impulseCount }).map((_, i) => ({
       curveIdx: i % Math.max(1, curves.length),
       t: Math.random(),
-      speed: (0.012 + (i % 5) * 0.005) * pulseSpeed,
+      speed: (0.010 + (i % 5) * 0.004) * pulseSpeed * activityMultiplier,
     }));
-  }, [curves, pulseSpeed]);
+  }, [curves, pulseSpeed, activityMultiplier]);
 
   const positions = useMemo(() => new Float32Array(impulseCount * 3), [impulseCount]);
 
@@ -432,10 +450,10 @@ const ActionPotentials: React.FC<{
         <bufferAttribute attach="attributes-position" args={[positions, 3]} />
       </bufferGeometry>
       <pointsMaterial
-        size={0.12}
+        size={0.075}
         color="#ffffff"
         transparent
-        opacity={0.95}
+        opacity={0.92}
         blending={THREE.AdditiveBlending}
         depthWrite={false}
       />
@@ -443,53 +461,64 @@ const ActionPotentials: React.FC<{
   );
 };
 
-// 4. Interactive Cortical Neurons on Gyri Surface with Dramatic Synaptic Action Potential Firing
+// 4. Interactive Cortical Neurons on Gyri Surface with Dynamic System-Driven Synaptic Firing
 const NeuronSoma: React.FC<{
   node: NeuronNodeData;
   accentColor: string;
   isSelected: boolean;
   onSelect: (node: NeuronNodeData) => void;
   pulseSpeed: number;
-}> = ({ node, accentColor, isSelected, onSelect, pulseSpeed }) => {
+  systemActivityMultiplier?: number;
+}> = ({ node, accentColor, isSelected, onSelect, pulseSpeed, systemActivityMultiplier = 1.0 }) => {
   const meshRef = useRef<THREE.Mesh>(null!);
   const haloRef = useRef<THREE.Mesh>(null!);
   const [hovered, setHovered] = useState(false);
 
-  // Pseudo-random firing rhythm offset based on node id coordinates
+  // Dynamic frequency driven by live agent activity on trouble threads and deliberation cycle
+  const nodeFrequency = (node.firingFrequency || 1.0) * systemActivityMultiplier;
+  const isHighActivity = !!node.isFiringNow || (node.activityLevel || 0) > 0.8;
+
+  // Pseudo-random firing rhythm offset based on node coordinates
   const firingPhase = useMemo(() => {
     return (Math.abs(node.x * 13.7 + node.y * 19.3 + node.z * 29.1) % 10) * 0.628;
   }, [node]);
 
   const color = node.type && TYPE_COLORS[node.type] ? TYPE_COLORS[node.type] : accentColor;
   // Compact base scale so somas sit neatly embedded into the gyri surface folds
-  const baseScale = 0.08 + (node.intensity || 0.5) * 0.05;
+  const baseScale = 0.052 + (node.intensity || 0.5) * 0.035;
 
   useFrame(({ clock }) => {
-    const elapsed = clock.getElapsedTime() * pulseSpeed;
+    const elapsed = clock.getElapsedTime() * pulseSpeed * nodeFrequency;
 
-    // Biological Action Potential curve (steep depolarization spike followed by refractory recovery)
-    const cycle = (elapsed * 3.2 + firingPhase) % (Math.PI * 2);
-    // Spike occurs sharply when sin exceeds 0.7
-    const isFiring = Math.sin(cycle) > 0.65;
-    const spikeIntensity = isFiring ? Math.pow(Math.sin(cycle), 4) * 2.0 : 0.1;
+    // Dynamic Biological Action Potential curve (steep depolarization spike modulated by dynamic frequency)
+    const cycle = (elapsed * 2.8 + firingPhase) % (Math.PI * 2);
+    // When actively firing in response to system events, depolarization threshold is lower and flash is brighter
+    const threshold = isHighActivity ? 0.45 : 0.72;
+    const isFiring = Math.sin(cycle) > threshold;
+    const spikeIntensity = isFiring
+      ? Math.pow(Math.max(0, Math.sin(cycle)), 3) * (isHighActivity ? 2.8 : 1.6)
+      : 0.08;
 
     if (meshRef.current) {
-      const pulseFactor = 1.0 + spikeIntensity * 0.35;
-      const scale = (hovered || isSelected ? baseScale * 1.6 : baseScale) * pulseFactor;
+      const pulseFactor = 1.0 + spikeIntensity * 0.38;
+      const scale = (hovered || isSelected ? baseScale * 1.5 : baseScale) * pulseFactor;
       meshRef.current.scale.set(scale, scale, scale);
 
       const mat = meshRef.current.material as THREE.MeshStandardMaterial;
       if (mat) {
-        mat.emissiveIntensity = hovered || isSelected ? 3.5 : 1.2 + spikeIntensity * 2.0;
+        const baseGlow = isHighActivity ? 2.2 : 1.1;
+        mat.emissiveIntensity = hovered || isSelected ? 4.0 : baseGlow + spikeIntensity * 2.4;
       }
     }
 
     if (haloRef.current) {
-      const haloScale = baseScale * (1.5 + spikeIntensity * 1.0);
+      const haloScale = baseScale * (1.4 + spikeIntensity * 1.1);
       haloRef.current.scale.set(haloScale, haloScale, haloScale);
       const haloMat = haloRef.current.material as THREE.MeshBasicMaterial;
       if (haloMat) {
-        haloMat.opacity = isFiring ? 0.6 + spikeIntensity * 0.2 : (hovered || isSelected ? 0.5 : 0.12);
+        haloMat.opacity = isFiring
+          ? 0.55 + spikeIntensity * 0.25
+          : (hovered || isSelected ? 0.6 : (isHighActivity ? 0.25 : 0.1));
       }
     }
   });
@@ -498,11 +527,11 @@ const NeuronSoma: React.FC<{
     <group position={[node.x, node.y, node.z]}>
       {/* Outer Synaptic Flare Corona */}
       <mesh ref={haloRef}>
-        <sphereGeometry args={[1, 16, 16]} />
+        <sphereGeometry args={[1, 14, 14]} />
         <meshBasicMaterial
           color={color}
           transparent
-          opacity={0.35}
+          opacity={0.3}
           blending={THREE.AdditiveBlending}
           depthWrite={false}
         />
@@ -524,20 +553,20 @@ const NeuronSoma: React.FC<{
           setHovered(false);
         }}
       >
-        <sphereGeometry args={[1, 20, 20]} />
+        <sphereGeometry args={[1, 16, 16]} />
         <meshStandardMaterial
           color={color}
           emissive={color}
           emissiveIntensity={1.8}
-          roughness={0.1}
-          metalness={0.9}
+          roughness={0.15}
+          metalness={0.85}
         />
       </mesh>
 
       {/* Target Reticle Ring when Selected */}
       {isSelected && (
         <mesh rotation={[Math.PI / 2, 0, 0]}>
-          <ringGeometry args={[0.35, 0.48, 32]} />
+          <ringGeometry args={[0.25, 0.36, 32]} />
           <meshBasicMaterial
             color="#ffffff"
             side={THREE.DoubleSide}
@@ -593,10 +622,10 @@ const LatentEmbeddingCloud: React.FC<{
           <bufferAttribute attach="attributes-position" args={[particles, 3]} />
         </bufferGeometry>
         <pointsMaterial
-          size={0.032}
+          size={0.020}
           color={secondaryColor}
           transparent
-          opacity={0.5}
+          opacity={0.45}
           blending={THREE.AdditiveBlending}
           depthWrite={false}
         />
@@ -612,6 +641,7 @@ const BrainScene: React.FC<{
   pulseSpeed: number;
   topology: NeuronNodeData[];
   nervePathways: NervePathwayData[];
+  telemetry?: CognitiveTelemetryData;
   selectedNeuron: NeuronNodeData | null;
   onSelectNeuron: (node: NeuronNodeData) => void;
   renderStyle: "hologram" | "cortex" | "contour";
@@ -628,6 +658,7 @@ const BrainScene: React.FC<{
   pulseSpeed,
   topology,
   nervePathways,
+  telemetry,
   selectedNeuron,
   onSelectNeuron,
   renderStyle,
@@ -662,6 +693,8 @@ const BrainScene: React.FC<{
     ctrl.update();
   }, [viewAngle]);
 
+  const activityMultiplier = telemetry?.firingRateMultiplier || 1.0;
+
   return (
     <>
       <ambientLight intensity={1.1} />
@@ -676,7 +709,7 @@ const BrainScene: React.FC<{
         enableDamping
         dampingFactor={0.08}
         autoRotate={autoRotate}
-        autoRotateSpeed={0.7 * pulseSpeed}
+        autoRotateSpeed={0.7 * pulseSpeed * activityMultiplier}
         maxDistance={14}
         minDistance={3.5}
       />
@@ -716,7 +749,11 @@ const BrainScene: React.FC<{
 
           {/* Action Potential Impulses */}
           {showImpulses && (
-            <ActionPotentials pathways={nervePathways} pulseSpeed={pulseSpeed} />
+            <ActionPotentials
+              pathways={nervePathways}
+              pulseSpeed={pulseSpeed}
+              activityMultiplier={activityMultiplier}
+            />
           )}
 
           {/* Latent Embedding Cloud */}
@@ -732,6 +769,7 @@ const BrainScene: React.FC<{
                 isSelected={selectedNeuron?.id === node.id}
                 onSelect={onSelectNeuron}
                 pulseSpeed={pulseSpeed}
+                systemActivityMultiplier={activityMultiplier}
               />
             ))}
         </group>
@@ -748,6 +786,7 @@ const R3FNeuralBrain: React.FC<R3FNeuralBrainProps> = ({
   pulseSpeed = 1.0,
   topology = [],
   nervePathways = [],
+  telemetry,
   selectedNeuronId,
   onSelectNeuron,
   onFocusMemory,
@@ -782,16 +821,53 @@ const R3FNeuralBrain: React.FC<R3FNeuralBrainProps> = ({
     }
   };
 
+  // Derive dynamic cognitive state badge text & color
+  const deliberationState = telemetry?.deliberationState || "THINKING";
+  const stateBadgeColor =
+    deliberationState === "DEBATING"
+      ? "#f43f5e"
+      : deliberationState === "ANALYZING"
+      ? "#38bdf8"
+      : deliberationState === "RESTING"
+      ? "#a855f7"
+      : "#10b981";
+
   return (
     <div className="neural-brain-canvas">
-      {/* Top Left Live R3F Telemetry Badge with Firing State */}
+      {/* Top Left Live R3F Telemetry Badge with Dynamic System State */}
       <div className="neural-brain-canvas__badge">
-        <span className="neural-brain-canvas__dot" style={{ backgroundColor: accentColor }} />
-        <span>Anatomical Cortex 3D Engine</span>
-        <span className="badge badge--pill badge--tag" style={{ marginLeft: "0.4rem", display: "inline-flex", alignItems: "center", gap: "0.3rem" }}>
-          <Zap size={11} style={{ color: "#fbbf24" }} />
-          <span>Firing Active: {topology.length} Somas</span>
+        <span className="neural-brain-canvas__dot" style={{ backgroundColor: stateBadgeColor }} />
+        <span>Live Neural Telemetry</span>
+        <span
+          className="badge badge--pill badge--tag"
+          style={{
+            marginLeft: "0.4rem",
+            display: "inline-flex",
+            alignItems: "center",
+            gap: "0.3rem",
+            backgroundColor: "rgba(15, 23, 42, 0.8)",
+            borderColor: stateBadgeColor,
+            color: "#f8fafc",
+          }}
+        >
+          <Zap size={11} style={{ color: stateBadgeColor }} />
+          <span>
+            {deliberationState}: {telemetry?.firingRateMultiplier ? `${telemetry.firingRateMultiplier}x Hz` : "Active"}
+          </span>
         </span>
+        {telemetry?.isCoolingDown && (
+          <span
+            className="badge badge--pill badge--tag"
+            style={{
+              marginLeft: "0.3rem",
+              backgroundColor: "rgba(168, 85, 247, 0.15)",
+              color: "#c084fc",
+              borderColor: "rgba(168, 85, 247, 0.3)",
+            }}
+          >
+            Cooling ({telemetry.cooldownRemainingSeconds}s)
+          </span>
+        )}
       </div>
 
       {/* Top Right Anatomical Controls Toolbar */}
@@ -897,6 +973,7 @@ const R3FNeuralBrain: React.FC<R3FNeuralBrainProps> = ({
           pulseSpeed={pulseSpeed}
           topology={topology}
           nervePathways={nervePathways}
+          telemetry={telemetry}
           selectedNeuron={inspectedNeuron}
           onSelectNeuron={handleNeuronClick}
           renderStyle={renderStyle}
@@ -931,18 +1008,24 @@ const R3FNeuralBrain: React.FC<R3FNeuralBrainProps> = ({
 
           <p className="neural-brain-canvas__probe-label">{inspectedNeuron.label}</p>
 
+          {inspectedNeuron.connectedIssueTitle && (
+            <div style={{ fontSize: "1.05rem", color: "#38bdf8", marginBottom: "0.5rem" }}>
+              Linked Trouble: <strong>{inspectedNeuron.connectedIssueTitle}</strong>
+            </div>
+          )}
+
           <div className="neural-brain-canvas__probe-bar-row">
-            <span style={{ fontSize: "1.05rem", color: "#94a3b8" }}>Synaptic Action Potential</span>
+            <span style={{ fontSize: "1.05rem", color: "#94a3b8" }}>Synaptic Depolarization Level</span>
             <span style={{ fontSize: "1.1rem", fontWeight: 700, color: "#38bdf8" }}>
-              {Math.round(inspectedNeuron.intensity * 100)}%
+              {Math.round((inspectedNeuron.activityLevel || inspectedNeuron.intensity || 0.5) * 100)}%
             </span>
           </div>
           <div className="neural-brain-canvas__probe-bar-track">
             <div
               className="neural-brain-canvas__probe-bar-fill"
               style={{
-                width: `${Math.round(inspectedNeuron.intensity * 100)}%`,
-                backgroundColor: accentColor,
+                width: `${Math.round((inspectedNeuron.activityLevel || inspectedNeuron.intensity || 0.5) * 100)}%`,
+                backgroundColor: inspectedNeuron.isFiringNow ? "#f43f5e" : accentColor,
               }}
             />
           </div>

@@ -111,6 +111,16 @@ interface BrainState {
     timeAgo: string;
     confidenceScore?: number;
   }>;
+  telemetry?: {
+    systemActivityLevel: number;
+    deliberationState: "THINKING" | "DEBATING" | "RESTING" | "ANALYZING";
+    firingRateMultiplier: number;
+    recentActionCount: number;
+    activeTroublesCount: number;
+    lastActionTimeAgo?: string;
+    isCoolingDown: boolean;
+    cooldownRemainingSeconds: number;
+  };
   topology: NeuronNodeData[];
   nervePathways: NervePathwayData[];
 }
@@ -581,6 +591,7 @@ PINECONE_INDEX="opinions-poll-agents"
               secondaryColor={archetypeConfig.secondary}
               topology={brainState?.topology}
               nervePathways={brainState?.nervePathways}
+              telemetry={brainState?.telemetry}
               selectedNeuronId={selectedNeuronId}
               onSelectNeuron={(node) => {
                 if (node?.vectorPreview) {
